@@ -131,8 +131,9 @@ const setBrandSub = () => {
   const dpi = printer.info?.dpi;
   $("brandSub").textContent = !printer.connected
     ? t("Printer not connected")
-    : dpi ? t("{name} · {mm} mm print head", { name: deviceModel, mm: dpi / 8 }) : deviceModel;
+    : dpi ? t("{name} · {mm} mm · {dots} dots", { name: deviceModel, mm: dpi / 8, dots: dpi }) : deviceModel;
   $("statHead").textContent = printer.connected && dpi ? t("{mm} mm", { mm: dpi / 8 }) : "—";
+  $("statHeadDots").textContent = printer.connected && dpi ? t("{dots} dots", { dots: dpi }) : "";
 };
 
 printer.addEventListener("connected", (e) => {

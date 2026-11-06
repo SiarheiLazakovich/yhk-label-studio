@@ -9,7 +9,8 @@
 const RU = {
   // header and common
   "Printer not connected": "Принтер не подключён",
-  "{name} · {mm} mm print head": "{name} · головка {mm} мм",
+  "{name} · {mm} mm · {dots} dots": "{name} · {mm} мм · {dots} точек",
+  "{dots} dots": "{dots} точек",
   "{mm} mm": "{mm} мм",
   "Connect printer": "Подключить принтер",
   "Language": "Язык",
