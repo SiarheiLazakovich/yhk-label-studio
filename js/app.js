@@ -1108,7 +1108,9 @@ log(t("Ready. Connect the YHK-0926 printer."));
 // PWA offline cache. Not registered on localhost (gets in the way of development) unless opened with ?sw=1.
 if ("serviceWorker" in navigator) {
   const dev = ["localhost", "127.0.0.1"].includes(location.hostname) && !new URLSearchParams(location.search).has("sw");
-  if (!dev) navigator.serviceWorker.register("sw.js").catch((e) => log(`Service worker: ${e.message}`, "warn"));
+  // inside the browser extension the files are already local, and extension pages can't register one
+  const extension = location.protocol === "chrome-extension:";
+  if (!dev && !extension) navigator.serviceWorker.register("sw.js").catch((e) => log(`Service worker: ${e.message}`, "warn"));
 }
 
 // for debugging from the console

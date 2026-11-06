@@ -1,0 +1,5 @@
+{
+  "name": { "message": "YHK Label Studio" },
+  "description": { "message": "Design and print labels on the YHK-0926 (WalkPrint) thermal printer over Bluetooth." },
+  "actionTitle": { "message": "Open YHK Label Studio" }
+}

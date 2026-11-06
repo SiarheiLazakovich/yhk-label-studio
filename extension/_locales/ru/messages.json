@@ -1,0 +1,5 @@
+{
+  "name": { "message": "YHK Label Studio" },
+  "description": { "message": "Редактор и печать этикеток на термопринтере YHK-0926 (WalkPrint) через Bluetooth." },
+  "actionTitle": { "message": "Открыть YHK Label Studio" }
+}

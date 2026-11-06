@@ -67,6 +67,16 @@ Classic SPP (`cu.YHK-0926` через Web Serial) оставлен запасн�
 - PWA: манифест и иконки в `icons/`, офлайн-кэш в `sw.js` (при деплое версия кэша заменяется на SHA коммита). На localhost service worker не регистрируется, если не открыть страницу с `?sw=1`.
 - Web Bluetooth работает в Chrome, Edge, Opera и Samsung Internet на компьютере и Android (на Android дайте браузеру разрешение «Устройства поблизости», на старых версиях ещё нужна включённая геолокация). На iPhone и iPad все браузеры работают на WebKit без Web Bluetooth — используйте браузер [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055).
 
+## Расширение для браузера
+
+Это же приложение есть в виде расширения для Chrome и Edge (Manifest V3): иконка на панели открывает его на весь экран во вкладке, а если вкладка уже открыта — переключается на неё. Web Bluetooth и Web Serial на страницах расширения работают, дополнительных разрешений расширение не запрашивает.
+
+```bash
+npm run extension     # → dist/extension/ и dist/yhk-label-studio-extension-<версия>.zip
+```
+
+Установка: chrome://extensions → «Режим разработчика» → **«Загрузить распакованное расширение»** → `dist/extension`. Zip готов для Chrome Web Store. Упаковка только копирует файлы (`index.html`, `css/`, `js/`, `vendor/`, `icons/`, `fonts/` и `extension/`), без транспиляции. Версия расширения берётся из `package.json`.
+
 ## Структура
 
 ```
@@ -81,7 +91,8 @@ js/tests.js       тестовые шаблоны: ширина 48/58 мм, ра
 vendor/           qrcode-generator (MIT), JsBarcode 3.12 (MIT)
 fonts/            Fontsource woff2 (SIL OFL 1.1, лицензии в fonts/licenses/)
 server.mjs        локальный статический сервер
-tools/            отладка через Chrome DevTools Protocol (Puppeteer)
+extension/        манифест расширения, фоновый воркер, _locales (en, ru)
+tools/            отладка через Chrome DevTools Protocol (Puppeteer), упаковка расширения
 ```
 
 ## Отладка без кликов (tools/)

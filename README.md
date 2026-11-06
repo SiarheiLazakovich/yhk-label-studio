@@ -67,6 +67,16 @@ English is the source language of the code and markup; `js/i18n.js` holds the Ru
 - PWA: manifest and icons in `icons/`, offline cache in `sw.js` (the cache version is replaced with the commit SHA on deploy). On localhost the service worker is not registered unless you open `?sw=1`.
 - Web Bluetooth works in Chrome, Edge, Opera and Samsung Internet on desktop and Android (on Android allow the browser "Nearby devices"; older versions also need Location on). On iPhone and iPad every browser is WebKit without Web Bluetooth — use the [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) browser.
 
+## Browser extension
+
+The same app also ships as a Chrome/Edge extension (Manifest V3): the toolbar icon opens it full-size in a tab, or focuses the tab if it is already open. Web Bluetooth and Web Serial work on extension pages, and no extra permissions are requested.
+
+```bash
+npm run extension     # → dist/extension/ and dist/yhk-label-studio-extension-<version>.zip
+```
+
+Load it with chrome://extensions → Developer mode → **Load unpacked** → `dist/extension`. The zip is ready for the Chrome Web Store. Packing only copies files (`index.html`, `css/`, `js/`, `vendor/`, `icons/`, `fonts/` plus `extension/`), there is no transpiling. The extension version follows `package.json`.
+
 ## Layout
 
 ```
@@ -81,7 +91,8 @@ js/tests.js       test patterns: width 48/58 mm, resolution
 vendor/           qrcode-generator (MIT), JsBarcode 3.12 (MIT)
 fonts/            Fontsource woff2 (SIL OFL 1.1, licenses in fonts/licenses/)
 server.mjs        local static server
-tools/            debugging over the Chrome DevTools Protocol (Puppeteer)
+extension/        extension manifest, background worker, _locales (en, ru)
+tools/            debugging over the Chrome DevTools Protocol (Puppeteer), extension packing
 ```
 
 ## Debugging without clicks (tools/)

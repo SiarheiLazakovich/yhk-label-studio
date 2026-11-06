@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "start": "node server.mjs",
-    "chrome": "node tools/launch.mjs http://localhost:5173"
+    "chrome": "node tools/launch.mjs http://localhost:5173",
+    "extension": "node tools/pack-extension.mjs"
   },
   "keywords": [],
   "author": "",
