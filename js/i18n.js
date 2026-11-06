@@ -158,6 +158,7 @@ const RU = {
   "iPhone and iPad browsers have no Web Bluetooth. Open this page in the Bluefy browser (App Store).": "В браузерах на iPhone и iPad нет Web Bluetooth. Откройте эту страницу в браузере Bluefy (App Store).",
   "This browser has no Web Bluetooth. Use Chrome, Edge or Opera on a computer or Android.": "В этом браузере нет Web Bluetooth. Используйте Chrome, Edge или Opera на компьютере или Android.",
   "Bluetooth unavailable": "Bluetooth недоступен",
+  "Source code on GitHub": "Исходный код на GitHub",
   "iPhone and iPad": "iPhone и iPad",
   "Browsers on iOS have no Web Bluetooth. Print from the Bluefy browser; a shortcut puts it on your home screen.": "В браузерах на iOS нет Web Bluetooth. Печатайте из браузера Bluefy, а команда добавит его на экран «Домой».",
   "Bluefy in the App Store": "Bluefy в App Store",

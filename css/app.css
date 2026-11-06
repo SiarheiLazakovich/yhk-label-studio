@@ -55,6 +55,8 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .pill:hover { border-color: #c9cdd8; }
 .topright { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .langseg button { padding: 0 10px; font-weight: 600; font-size: 12px; }
+.ghlink { color: var(--muted); width: 36px; height: 36px; }
+.ghlink:hover { color: var(--text); }
 .pill #pillText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #c4c8d4; flex: none; }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 4px rgba(24, 160, 88, .15); }
@@ -363,7 +365,11 @@ label.switch small { font-size: 12px; }
     height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 10px; border: 0; border-radius: 12px;
     background: none; font-size: 15px; font-weight: 500; text-align: left;
   }
-  .menulist button span { flex: 1; }
+  .menulist button span, .menulist .menulink span { flex: 1; }
+  .menulist .menulink {
+    height: 56px; display: flex; align-items: center; gap: 14px; padding: 0 10px; border-radius: 12px;
+    font-size: 15px; font-weight: 500; color: var(--text); text-decoration: none;
+  }
   .menulist button:active { background: var(--bg); }
 
   .mobilenav {
@@ -385,7 +391,7 @@ label.switch small { font-size: 12px; }
 }
 
 @media (max-width: 480px) {
-  .brandtext { display: none; }
+  .brandtext, .ghlink { display: none; }
   .wsbar { flex-wrap: nowrap; }
   .seg button { padding: 0 8px; font-size: 12px; }
   #sizeBtn { padding: 0 10px; gap: 6px; }
