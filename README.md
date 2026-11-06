@@ -4,7 +4,7 @@
 
 A label editor for the **YHK-0926** pocket thermal printer (the one that ships with the WalkPrint app), printing straight from the browser over Web Bluetooth. No build step, works offline as a PWA.
 
-**Live:** https://siarheilazakovich.github.io/yhk-label-studio/ (Chrome or Edge on desktop or Android)
+**Live:** https://siarheilazakovich.github.io/yhk-label-studio/ (Chrome or Edge on desktop or Android; iPhone/iPad → [how to print from iOS](#iphone-and-ipad))
 
 ```bash
 npm install

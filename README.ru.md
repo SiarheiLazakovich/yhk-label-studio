@@ -4,7 +4,7 @@
 
 Редактор этикеток для карманного термопринтера **YHK-0926** (тот, что работает с приложением WalkPrint). Печатает прямо из браузера через Web Bluetooth. Без сборки, работает офлайн как PWA.
 
-**Онлайн:** https://siarheilazakovich.github.io/yhk-label-studio/ (Chrome или Edge на компьютере или Android)
+**Онлайн:** https://siarheilazakovich.github.io/yhk-label-studio/ (Chrome или Edge на компьютере или Android; iPhone/iPad → [как печатать с iOS](#iphone-и-ipad))
 
 ```bash
 npm install
