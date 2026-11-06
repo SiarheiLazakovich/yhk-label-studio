@@ -67,6 +67,19 @@ English is the source language of the code and markup; `js/i18n.js` holds the Ru
 - PWA: manifest and icons in `icons/`, offline cache in `sw.js` (the cache version is replaced with the commit SHA on deploy). On localhost the service worker is not registered unless you open `?sw=1`.
 - Web Bluetooth works in Chrome, Edge, Opera and Samsung Internet on desktop and Android (on Android allow the browser "Nearby devices"; older versions also need Location on). On iPhone and iPad every browser is WebKit without Web Bluetooth — use the [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) browser: open the site in it and print as usual. The app falls back to the older `writeValue` call and does image brightness/contrast without `ctx.filter`, which WebKit lacks.
 
+## iPhone and iPad
+
+Every iOS browser (Safari, Chrome, Edge…) is WebKit without Web Bluetooth, and a home screen PWA runs in WebKit too, so it can't print. Use the **Bluefy** browser, which adds Web Bluetooth, and a shortcut that puts it on the home screen:
+
+1. Install [Bluefy – Web BLE Browser](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) from the App Store.
+2. Open https://siarheilazakovich.github.io/yhk-label-studio/ in Bluefy, tap the printer status in the header → **Connect**, choose YHK-… and allow Bluetooth. Print a test to make sure it works.
+3. Get the shortcut: in Safari open [YHK Label Studio.shortcut](https://siarheilazakovich.github.io/yhk-label-studio/ios/YHK%20Label%20Studio.shortcut) (the same link is in the app's printer panel when it's opened in Safari) → **Add Shortcut**.
+4. Save the app icon to Photos: open [apple-touch-icon.png](https://siarheilazakovich.github.io/yhk-label-studio/icons/apple-touch-icon.png), long-press → **Save to Photos**.
+5. In the Shortcuts app long-press **YHK Label Studio** → **Share** → **Add to Home Screen**. Tap the icon next to the name → **Choose Photo** → pick the saved icon → **Add**.
+6. The home screen icon now opens Bluefy. If Bluefy doesn't come back to the app by itself, make the site its home page or a bookmark.
+
+It isn't a true PWA: iOS briefly shows a Shortcuts banner on launch, and the app runs inside Bluefy's window. The shortcut is generated and signed by `tools/make-ios-shortcut.py` (macOS, `shortcuts sign`).
+
 ## Browser extension
 
 The same app also ships as a Chrome/Edge extension (Manifest V3): the toolbar icon opens it full-size in a tab, or focuses the tab if it is already open. Web Bluetooth and Web Serial work on extension pages, and no extra permissions are requested.
@@ -92,6 +105,7 @@ vendor/           qrcode-generator (MIT), JsBarcode 3.12 (MIT)
 fonts/            Fontsource woff2 (SIL OFL 1.1, licenses in fonts/licenses/)
 server.mjs        local static server
 extension/        extension manifest, background worker, _locales (en, ru)
+ios/              signed iOS shortcut that opens the app in Bluefy
 tools/            debugging over the Chrome DevTools Protocol (Puppeteer), extension packing
 ```
 

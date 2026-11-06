@@ -249,6 +249,8 @@ label.switch small { font-size: 12px; }
 .poptitle { display: block; font-size: 13px; margin-bottom: 10px; }
 .popfoot { padding: 12px 16px; display: flex; gap: 8px; background: #fbfbfd; border-top: 1px solid var(--line); position: sticky; bottom: 0; }
 .popfoot .btn { flex: 1; }
+.ioshelp a.btn { text-decoration: none; flex: 1; }
+.ioshelp .hint a { color: var(--accent); font-weight: 600; }
 
 .sizeline { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
 .sizeline input { width: 56px; text-align: center; padding: 6px 2px; }

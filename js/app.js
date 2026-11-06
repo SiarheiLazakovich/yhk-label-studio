@@ -1,5 +1,5 @@
 import "./ui.js";
-import { t } from "./i18n.js";
+import { t, getLang } from "./i18n.js";
 import { widthTest, resolutionTest, wideWidthTest } from "./tests.js";
 import { YhkPrinter, PRINT_WIDTH, DEFAULT_PRINT_OPTIONS, DENSITY_PROFILES, densityByte } from "./printer.js";
 import {
@@ -1065,7 +1065,8 @@ window.addEventListener("langchange", () => {
   if (printer.connected) showInfo(printer.info);
   else {
     $("devName").textContent = t("Not connected");
-    $("pillText").textContent = t("Connect printer");
+    $("pillText").textContent = t(noBluetoothMsg ? "Bluetooth unavailable" : "Connect printer");
+    if (noBluetoothMsg) $("devInfo").textContent = t(noBluetoothMsg);
   }
   setBrandSub();
   scheduleRender();
@@ -1073,15 +1074,26 @@ window.addEventListener("langchange", () => {
 
 // ---------------- startup ----------------
 
+// the iOS guide lives in the README of the current language
+function syncIosGuide() {
+  const repo = "https://github.com/SiarheiLazakovich/yhk-label-studio";
+  $("iosGuide").href = getLang() === "ru" ? `${repo}/blob/main/README.ru.md#iphone-и-ipad` : `${repo}#iphone-and-ipad`;
+}
+window.addEventListener("langchange", syncIosGuide);
+
 // iOS: every browser there is WebKit, which has no Web Bluetooth (Chrome/Edge on iPhone included)
 const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let noBluetoothMsg = null; // untranslated key, so a language switch can re-translate it
 if (!YhkPrinter.serialSupported && !YhkPrinter.bleSupported) {
-  const msg = isIOS
-    ? t("iPhone and iPad browsers have no Web Bluetooth. Open this page in the Bluefy browser (App Store).")
-    : t("This browser has no Web Bluetooth. Use Chrome, Edge or Opera on a computer or Android.");
+  noBluetoothMsg = isIOS
+    ? "iPhone and iPad browsers have no Web Bluetooth. Open this page in the Bluefy browser (App Store)."
+    : "This browser has no Web Bluetooth. Use Chrome, Edge or Opera on a computer or Android.";
+  const msg = t(noBluetoothMsg);
   $("devInfo").textContent = msg;
   $("pillText").textContent = t("Bluetooth unavailable");
   $("btnConnect").disabled = true;
+  $("iosHelp").hidden = !isIOS;
+  syncIosGuide();
   log(msg, "warn");
 } else if (!YhkPrinter.bleSupported && S().transport === "ble") {
   S().transport = "serial";

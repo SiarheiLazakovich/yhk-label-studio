@@ -67,6 +67,19 @@ Classic SPP (`cu.YHK-0926` через Web Serial) оставлен запасн�
 - PWA: манифест и иконки в `icons/`, офлайн-кэш в `sw.js` (при деплое версия кэша заменяется на SHA коммита). На localhost service worker не регистрируется, если не открыть страницу с `?sw=1`.
 - Web Bluetooth работает в Chrome, Edge, Opera и Samsung Internet на компьютере и Android (на Android дайте браузеру разрешение «Устройства поблизости», на старых версиях ещё нужна включённая геолокация). На iPhone и iPad все браузеры работают на WebKit без Web Bluetooth — используйте браузер [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055): откройте сайт в нём и печатайте как обычно. Приложение переходит на старый вызов `writeValue` и меняет яркость и контраст картинок без `ctx.filter`, которого в WebKit нет.
 
+## iPhone и iPad
+
+Все браузеры на iOS (Safari, Chrome, Edge…) работают на WebKit без Web Bluetooth, а PWA на экране «Домой» тоже запускается в WebKit, поэтому печатать не может. Используйте браузер **Bluefy**, который добавляет Web Bluetooth, и команду, которая выносит его на экран «Домой»:
+
+1. Установите [Bluefy – Web BLE Browser](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) из App Store.
+2. Откройте https://siarheilazakovich.github.io/yhk-label-studio/ в Bluefy, нажмите статус принтера в шапке → **Подключить**, выберите YHK-… и разрешите Bluetooth. Напечатайте тест, чтобы убедиться, что всё работает.
+3. Получите команду: откройте в Safari [YHK Label Studio.shortcut](https://siarheilazakovich.github.io/yhk-label-studio/ios/YHK%20Label%20Studio.shortcut) (та же ссылка есть в окне принтера, если открыть приложение в Safari) → **Добавить быструю команду**.
+4. Сохраните иконку приложения в «Фото»: откройте [apple-touch-icon.png](https://siarheilazakovich.github.io/yhk-label-studio/icons/apple-touch-icon.png), удерживайте палец → **Сохранить в Фото**.
+5. В приложении «Команды» удерживайте **YHK Label Studio** → **Поделиться** → **На экран «Домой»**. Нажмите на иконку рядом с названием → **Выбрать фото** → выберите сохранённую иконку → **Добавить**.
+6. Теперь иконка на экране «Домой» открывает Bluefy. Если Bluefy сам не возвращается к приложению, сделайте сайт его домашней страницей или закладкой.
+
+Это не настоящая PWA: при запуске iOS на мгновение показывает плашку «Команд», а приложение работает внутри окна Bluefy. Команда генерируется и подписывается скриптом `tools/make-ios-shortcut.py` (macOS, `shortcuts sign`).
+
 ## Расширение для браузера
 
 Это же приложение есть в виде расширения для Chrome и Edge (Manifest V3): иконка на панели открывает его на весь экран во вкладке, а если вкладка уже открыта — переключается на неё. Web Bluetooth и Web Serial на страницах расширения работают, дополнительных разрешений расширение не запрашивает.
@@ -92,6 +105,7 @@ vendor/           qrcode-generator (MIT), JsBarcode 3.12 (MIT)
 fonts/            Fontsource woff2 (SIL OFL 1.1, лицензии в fonts/licenses/)
 server.mjs        локальный статический сервер
 extension/        манифест расширения, фоновый воркер, _locales (en, ru)
+ios/              подписанная команда iOS, открывающая приложение в Bluefy
 tools/            отладка через Chrome DevTools Protocol (Puppeteer), упаковка расширения
 ```
 
