@@ -53,6 +53,8 @@ button:disabled { cursor: not-allowed; opacity: .45; }
   border: 1px solid var(--line); background: var(--bg); font-weight: 500; font-size: 13px; max-width: 60vw;
 }
 .pill:hover { border-color: #c9cdd8; }
+.topright { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.langseg button { padding: 0 10px; font-weight: 600; font-size: 12px; }
 .pill #pillText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #c4c8d4; flex: none; }
 .dot.on { background: var(--ok); box-shadow: 0 0 0 4px rgba(24, 160, 88, .15); }

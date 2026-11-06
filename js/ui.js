@@ -1,3 +1,4 @@
+import { t } from "./i18n.js";
 // Каркас интерфейса: панели, всплывающие окна, шторки, вкладки, журнал.
 // Одна и та же разметка работает на всех ширинах — CSS решает, колонка это, окно или нижняя шторка.
 //   ≥ 1280      — три колонки; «size»/«printer» — всплывающие окна; журнал раскрывается под холстом
@@ -29,7 +30,7 @@ function setExpanded(name, on) {
 export function setTab(tab) {
   document.querySelectorAll("#rightPanel [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
   document.querySelectorAll("#rightPanel [data-pane]").forEach((p) => (p.hidden = p.dataset.pane !== tab));
-  $("rightTitle").textContent = TAB_TITLES[tab] ?? "";
+  $("rightTitle").textContent = t(TAB_TITLES[tab] ?? "");
   try { localStorage.setItem("yhk-tab", tab); } catch { /* ignore */ }
 }
 
@@ -68,27 +69,27 @@ function toggleLog(force) {
 
 // ---------- делегирование кликов ----------
 document.addEventListener("click", (e) => {
-  const t = e.target.closest("[data-open], [data-close], [data-tab], [data-tab-go], [data-proxy], [data-toggle]");
-  if (!t) return;
-  if (t.hasAttribute("data-close")) return close();
-  if (t.dataset.toggle === "log") {
+  const el = e.target.closest("[data-open], [data-close], [data-tab], [data-tab-go], [data-proxy], [data-toggle]");
+  if (!el) return;
+  if (el.hasAttribute("data-close")) return close();
+  if (el.dataset.toggle === "log") {
     if (mqMobile.matches) return open("log");
     return toggleLog();
   }
-  if (t.dataset.proxy) {
+  if (el.dataset.proxy) {
     close();
-    $(t.dataset.proxy)?.click();
+    $(el.dataset.proxy)?.click();
     return;
   }
-  if (t.dataset.tab) return setTab(t.dataset.tab);
-  if (t.dataset.open) {
-    const name = t.dataset.open;
+  if (el.dataset.tab) return setTab(el.dataset.tab);
+  if (el.dataset.open) {
+    const name = el.dataset.open;
     // повторный клик по кнопке открытого окна — закрыть
-    if (current === name && !t.closest(".sheet")) return close();
-    open(name, { focus: t.dataset.focus, tab: t.dataset.tabGo });
+    if (current === name && !el.closest(".sheet")) return close();
+    open(name, { focus: el.dataset.focus, tab: el.dataset.tabGo });
     return;
   }
-  if (t.dataset.tabGo) setTab(t.dataset.tabGo);
+  if (el.dataset.tabGo) setTab(el.dataset.tabGo);
 });
 
 backdrop.addEventListener("click", close);
@@ -128,7 +129,7 @@ const btnPrint = $("btnPrint"), fab = $("fabPrint"), fabLabel = fab.querySelecto
 const syncFab = () => {
   const busy = !$("progress").hidden;
   fab.disabled = busy;
-  fabLabel.textContent = busy ? `${parseInt($("progressBar").style.width, 10) || 0} %` : "Печать";
+  fabLabel.textContent = busy ? `${parseInt($("progressBar").style.width, 10) || 0} %` : t("Печать");
 };
 new MutationObserver(syncFab).observe(btnPrint, { attributes: true, attributeFilter: ["disabled"] });
 new MutationObserver(syncFab).observe($("progressBar"), { attributes: true, attributeFilter: ["style"] });
@@ -138,6 +139,12 @@ fab.addEventListener("click", (e) => {
   if (!$("btnConnect").hidden) { e.stopPropagation(); open("printer"); }
 }, true);
 syncFab();
+
+window.addEventListener("langchange", () => {
+  const cur = document.querySelector('#rightPanel [data-tab][aria-selected="true"]')?.dataset.tab ?? "element";
+  $("rightTitle").textContent = t(TAB_TITLES[cur]);
+  syncFab();
+});
 
 // стартовая вкладка
 let startTab = "element";

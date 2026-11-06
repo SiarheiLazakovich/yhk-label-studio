@@ -51,14 +51,19 @@
       <img class="logo" src="icons/icon.svg" alt="" width="34" height="34" />
       <div class="brandtext">
         <h1>YHK Label Studio</h1>
-        <small>Термопринтер YHK-0926 · 48 мм</small>
+        <small id="brandSub">Принтер не подключён</small>
       </div>
+    </div>
+    <div class="topright">
+    <div class="seg langseg" role="group" aria-label="Язык">
+      <button data-lang="ru">RU</button><button data-lang="en">EN</button>
     </div>
     <button class="pill" id="printerPill" data-open="printer" aria-haspopup="dialog">
       <span class="dot" id="dot"></span>
       <span id="pillText">Подключить принтер</span>
       <svg class="ico sm"><use href="#i-down"/></svg>
     </button>
+    </div>
   </header>
 
   <main class="layout">
@@ -260,7 +265,7 @@
     <div class="popsec stats">
       <div><small>Заряд</small><strong id="statBattery">—</strong></div>
       <div><small>Канал</small><strong id="statChannel">—</strong></div>
-      <div><small>Головка</small><strong>48 мм</strong></div>
+      <div><small>Головка</small><strong id="statHead">—</strong></div>
     </div>
     <div class="popsec">
       <strong class="poptitle">Бумага</strong>

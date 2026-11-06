@@ -1,4 +1,5 @@
 import "./ui.js";
+import { t } from "./i18n.js";
 import { widthTest, resolutionTest, wideWidthTest } from "./tests.js";
 import { YhkPrinter, PRINT_WIDTH, DEFAULT_PRINT_OPTIONS, DENSITY_PROFILES, densityByte } from "./printer.js";
 import {
@@ -46,8 +47,8 @@ const defaults = {
     acceptAll: false, zoom: 1.5, view: "print",
   },
   objects: [
-    { id: 1, type: "text", x: 0, y: 40, text: "Привет, YHK!", fontSize: 44, fontFamily: FONTS[0][0], bold: true, italic: false, align: "center", inverse: false, lineHeight: 1.15 },
-    { id: 2, type: "text", x: 0, y: 120, text: "Label Studio · 48 × 40 мм", fontSize: 22, fontFamily: FONTS[0][0], bold: false, italic: false, align: "center", inverse: false, lineHeight: 1.15 },
+    { id: 1, type: "text", x: 0, y: 40, text: t("Привет, YHK!"), fontSize: 44, fontFamily: FONTS[0][0], bold: true, italic: false, align: "center", inverse: false, lineHeight: 1.15 },
+    { id: 2, type: "text", x: 0, y: 120, text: t("Label Studio · 48 × 40 мм"), fontSize: 22, fontFamily: FONTS[0][0], bold: false, italic: false, align: "center", inverse: false, lineHeight: 1.15 },
     { id: 3, type: "rect", x: 4, y: 4, w: 376, h: 312, stroke: 3, fill: false },
   ],
 };
@@ -88,7 +89,7 @@ function save() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-    catch { toast("Не удалось сохранить макет (слишком большие картинки)", true); }
+    catch { toast(t("Не удалось сохранить макет (слишком большие картинки)"), true); }
   }, 300);
 }
 
@@ -124,20 +125,33 @@ const selected = () => state.objects.find((o) => o.id === selectedId) ?? null;
 const printer = new YhkPrinter();
 
 printer.addEventListener("log", (e) => log(e.detail.msg, e.detail.level));
+// Модель и ширина головки — от принтера: имя BLE-устройства и DPI из ответа на 1E 47 03
+let deviceModel = "";
+const setBrandSub = () => {
+  const dpi = printer.info?.dpi;
+  $("brandSub").textContent = !printer.connected
+    ? t("Принтер не подключён")
+    : dpi ? t("{name} · головка {mm} мм", { name: deviceModel, mm: dpi / 8 }) : deviceModel;
+  $("statHead").textContent = printer.connected && dpi ? t("{mm} мм", { mm: dpi / 8 }) : "—";
+};
+
 printer.addEventListener("connected", (e) => {
+  deviceModel = String(e.detail.name).replace(/\s*\(.*\)$/, "");
   $("devName").textContent = e.detail.name;
-  $("devInfo").textContent = "Читаю информацию…";
+  setBrandSub();
+  $("devInfo").textContent = t("Читаю информацию…");
   $("pillText").textContent = e.detail.name;
   $("statChannel").textContent = e.detail.kind === "ble" ? "BLE" : "SPP";
   updateConnUi();
   printer.getInfo().then(showInfo).catch((err) => log(err.message, "warn"));
 });
 printer.addEventListener("disconnected", () => {
-  $("devName").textContent = "Не подключено";
-  $("devInfo").textContent = "Соединение потеряно";
-  $("pillText").textContent = "Подключить принтер";
+  $("devName").textContent = t("Не подключено");
+  $("devInfo").textContent = t("Соединение потеряно");
+  $("pillText").textContent = t("Подключить принтер");
   $("statBattery").textContent = "—";
   $("statChannel").textContent = "—";
+  setBrandSub();
   updateConnUi();
 });
 printer.addEventListener("busy", updateConnUi);
@@ -145,9 +159,8 @@ printer.addEventListener("busy", updateConnUi);
 function showInfo(i) {
   syncPrintUi();
   if (!i.firmware && !i.publicId) {
-    const msg = "Порт открыт, но принтер не отвечает. Проверьте, что он включён и не подключён к телефону; " +
-      "если не поможет — выключите и включите Bluetooth на Mac и подключитесь снова.";
-    $("devInfo").textContent = "Нет ответа от принтера";
+    const msg = t("Порт открыт, но принтер не отвечает. Проверьте, что он включён и не подключён к телефону; если не поможет — выключите и включите Bluetooth на Mac и подключитесь снова.");
+    $("devInfo").textContent = t("Нет ответа от принтера");
     log(msg, "err");
     toast(msg, true);
     return;
@@ -156,13 +169,14 @@ function showInfo(i) {
   if (i.firmware) parts.push(`FW ${i.firmware}`);
   if (i.hardware) parts.push(`HW ${i.hardware}`);
   if (i.serial) parts.push(`S/N ${i.serial}`);
-  $("devInfo").textContent = parts.join(" · ") || "Готов";
+  $("devInfo").textContent = parts.join(" · ") || t("Готов");
   const kind = printer.kind === "ble" ? "BLE" : "SPP";
   $("statChannel").textContent = kind;
   $("statBattery").textContent = i.voltageMv ? `${i.batteryPct} %` : "—";
-  $("pillText").textContent = `YHK · ${kind}${i.voltageMv ? ` · ${i.batteryPct} %` : ""}`;
+  $("pillText").textContent = `${deviceModel || "YHK"} · ${kind}${i.voltageMv ? ` · ${i.batteryPct} %` : ""}`;
+  setBrandSub();
   if (i.serial) $("device").title = `S/N ${i.serial}${i.publicId ? ` · ID ${i.publicId}` : ""}`;
-  if (i.dpi && i.dpi !== PRINT_WIDTH) log(`Принтер сообщает ширину ${i.dpi}px`, "warn");
+  if (i.dpi && i.dpi !== PRINT_WIDTH) log(t("Принтер сообщает ширину {w}px", { w: i.dpi }), "warn");
 }
 
 function updateConnUi() {
@@ -184,7 +198,7 @@ $("btnConnect").onclick = async () => {
   } catch (e) {
     // следующая попытка — с окном выбора, а не с ранее разрешённым портом
     connectFailed = true;
-    if (e.name === "NotFoundError") return log("Выбор устройства отменён", "warn");
+    if (e.name === "NotFoundError") return log(t("Выбор устройства отменён"), "warn");
     log(e.message, "err");
     toast(e.message, true);
   }
@@ -210,10 +224,10 @@ async function runPrint(bits, height, extra, width = PRINT_WIDTH) {
   $("progressBar").style.width = "0%";
   try {
     await printer.print(bits, height, printOpts({ signal: abortCtrl.signal, ...extra }), width);
-    toast("Отправлено на печать ✓");
+    toast(t("Отправлено на печать ✓"));
   } catch (e) {
     if (e.name === "AbortError") {
-      log("Печать отменена", "warn");
+      log(t("Печать отменена"), "warn");
     } else {
       log(e.message, "err");
       toast(e.message, true);
@@ -236,7 +250,7 @@ function printableBits() {
 
 $("btnPrint").onclick = () => {
   const { bits, height } = printableBits();
-  if (!bits.some(Boolean)) return toast("Этикетка пустая — печатать нечего", true);
+  if (!bits.some(Boolean)) return toast(t("Этикетка пустая — печатать нечего"), true);
   runPrint(bits, height);
 };
 $("btnCancel").onclick = () => abortCtrl?.abort();
@@ -282,19 +296,24 @@ function bindSetting(id, key, { type = "number", after } = {}) {
   return write;
 }
 
-$("dither").innerHTML = Object.entries(DITHERS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+const fillDitherOptions = () => {
+  const sel = $("dither"), cur = sel.value || S().dither;
+  sel.innerHTML = Object.entries(DITHERS).map(([k, v]) => `<option value="${k}">${t(v)}</option>`).join("");
+  sel.value = cur;
+};
+fillDitherOptions();
 
 const syncSize = () => {
   if (document.activeElement !== $("widthMm")) $("widthMm").value = S().widthMm;
   if (document.activeElement !== $("heightMm")) $("heightMm").value = S().heightMm;
   $("widthPx").value = labelW();
   if (document.activeElement !== $("heightPx")) $("heightPx").value = heightPx();
-  $("sizeBtnLabel").textContent = `${S().widthMm} × ${S().heightMm} мм`;
+  $("sizeBtnLabel").textContent = t("{w} × {h} мм", { w: S().widthMm, h: S().heightMm });
   const h = heightPx();
   const side = sideMarginMm();
   $("sizeHint").textContent =
-    `${S().widthMm} × ${S().heightMm} мм = ${labelW()} × ${h} px · 8 px/мм · растр ${(h * 48 / 1024).toFixed(1)} КБ` +
-    (side > 0 ? ` · печатается центральные ${PRINT_MM} мм, по ${+side.toFixed(1)} мм с краёв — поля (ограничение головки)` : "");
+    t("{w} × {h} мм = {pw} × {ph} px · 8 px/мм · растр {kb} КБ", { w: S().widthMm, h: S().heightMm, pw: labelW(), ph: h, kb: (h * 48 / 1024).toFixed(1) }) +
+    (side > 0 ? t(" · печатается центральные {p} мм, по {s} мм с краёв — поля (ограничение головки)", { p: PRINT_MM, s: +side.toFixed(1) }) : "");
   document.querySelectorAll("#widthChips .chip").forEach((c) => c.classList.toggle("on", Number(c.dataset.v) === S().widthMm));
   document.querySelectorAll("#heightChips .chip").forEach((c) => c.classList.toggle("on", Number(c.dataset.v) === S().heightMm));
 };
@@ -372,11 +391,11 @@ function syncPrintUi() {
   document.querySelectorAll("#densitySeg button").forEach((b) => b.classList.toggle("on", Number(b.dataset.v) === S().densityLevel && !S().densityCustom));
   document.querySelectorAll("#transportSeg button").forEach((b) => b.classList.toggle("on", b.dataset.v === S().transport));
   $("densityHint").textContent =
-    `Профиль ${DENSITY_PROFILES[profile].label}: ${DENSITY_PROFILES[profile].levels.join(" / ")} · сейчас ${densityByte(opts)}` +
-    (printer.info.profile ? "" : " (профиль уточнится после подключения)");
+    t("Профиль {name}: {levels} · сейчас {v}", { name: DENSITY_PROFILES[profile].label, levels: DENSITY_PROFILES[profile].levels.join(" / "), v: densityByte(opts) }) +
+    (printer.info.profile ? "" : t(" (профиль уточнится после подключения)"));
   $("transportHint").textContent = S().transport === "ble"
-    ? "Основной канал. Изображение уходит построчно: каждая строка — отдельный пакет с подтверждением (больше одной строки за пакет принтер по BLE не печатает)."
-    : "Запасной канал (как WalkPrint): порт «cu.YHK-0926». На macOS работает, только пока принтер подключён в Настройки → Bluetooth.";
+    ? t("Основной канал. Изображение уходит построчно: каждая строка — отдельный пакет с подтверждением (больше одной строки за пакет принтер по BLE не печатает).")
+    : t("Запасной канал (как WalkPrint): порт «cu.YHK-0926». На macOS работает, только пока принтер подключён в Настройки → Bluetooth.");
   $("bleOpts").hidden = S().transport !== "ble";
   scheduleRender();
 }
@@ -474,10 +493,10 @@ function render() {
   if (S().trim && rows) h = Math.min(lastRender.height, rows.bottom - rows.top + 1 + 2 * S().trimMargin);
   const mm = (h / PX_PER_MM).toFixed(1);
   $("printHint").textContent = rows
-    ? `384 × ${h} px ≈ ${mm} мм${S().copies > 1 ? ` × ${S().copies}` : ""}`
-    : "Этикетка пустая";
-  const dens = S().densityCustom ? `плотность ${S().densityCustom}` : ["светлая", "средняя", "тёмная"][S().densityLevel] ?? "";
-  $("printSummary").textContent = rows ? `${S().widthMm} × ${mm} мм · ${dens} · ${S().copies} шт.` : "Этикетка пустая";
+    ? t("{w} × {h} px ≈ {mm} мм", { w: 384, h, mm }) + (S().copies > 1 ? ` × ${S().copies}` : "")
+    : t("Этикетка пустая");
+  const dens = S().densityCustom ? t("плотность {v}", { v: S().densityCustom }) : t(["светлая", "средняя", "тёмная"][S().densityLevel] ?? "");
+  $("printSummary").textContent = rows ? t("{w} × {mm} мм · {dens} · {n} шт.", { w: S().widthMm, mm, dens, n: S().copies }) : t("Этикетка пустая");
 }
 
 /** Линии привязки: группы 1/2, 1/3 · 2/3, 1/4 · 3/4 по ширине и высоте — каждая включается в сайдбаре. */
@@ -573,17 +592,17 @@ function drawOverlay() {
 
 const ICON = { text: "T", qr: "▣", image: "🖼", rect: "▢", barcode: "║", vector: "◆" };
 function layerName(o) {
-  if (o.type === "text") return o.text.split("\n")[0] || "Текст";
+  if (o.type === "text") return o.text.split("\n")[0] || t("Текст");
   if (o.type === "qr") return `QR: ${o.data}`;
-  if (o.type === "image") return o.name || "Картинка";
+  if (o.type === "image") return o.name || t("Картинка");
   if (o.type === "barcode") return `${BARCODE_FORMATS[o.format]?.label ?? o.format}: ${o.data}`;
   if (o.type === "vector") return o.name || "SVG";
-  return `Рамка ${FRAME_STYLES[o.style ?? "solid"].toLowerCase()} ${o.w}×${o.h}`;
+  return t("Рамка {style} {w}×{h}", { style: t(FRAME_STYLES[o.style ?? "solid"]).toLowerCase(), w: o.w, h: o.h });
 }
 function renderLayers() {
   const ul = $("layers");
   if (!state.objects.length) {
-    ul.innerHTML = `<li class="empty">Пусто — добавьте элемент</li>`;
+    ul.innerHTML = `<li class="empty">${t("Пусто — добавьте элемент")}</li>`;
     return;
   }
   ul.innerHTML = [...state.objects].reverse().map((o) =>
@@ -615,24 +634,24 @@ function freeY(h) {
 }
 
 document.querySelectorAll("[data-add]").forEach((b) => (b.onclick = () => {
-  const t = b.dataset.add;
-  if (t === "text") {
-    const o = { type: "text", x: 0, y: 0, text: "Текст", fontSize: 32, fontFamily: FONTS[0][0], bold: true, italic: false, align: "center", inverse: false, lineHeight: 1.15 };
+  const kind = b.dataset.add;
+  if (kind === "text") {
+    const o = { type: "text", x: 0, y: 0, text: t("Текст"), fontSize: 32, fontFamily: FONTS[0][0], bold: true, italic: false, align: "center", inverse: false, lineHeight: 1.15 };
     const bb = boundsOf(o);
     o.x = labelCenterX(bb.w);
     o.y = freeY(bb.h);
     addObject(o);
     setTimeout(() => document.querySelector("#propsBody textarea")?.select(), 0);
-  } else if (t === "qr") {
+  } else if (kind === "qr") {
     const size = Math.max(21, Math.min(200, labelW() - 16, heightPx() - 16));
     addObject({ type: "qr", x: labelCenterX(size), y: freeY(size), size, data: "https://example.com", ecc: "M" });
-  } else if (t === "rect") {
+  } else if (kind === "rect") {
     addObject({ type: "rect", x: labelX() + 4, y: 4, w: labelW() - 8, h: heightPx() - 8, stroke: 3, radius: 0, style: "solid", fill: false });
-  } else if (t === "image") {
+  } else if (kind === "image") {
     $("fileInput").click();
-  } else if (t === "vector") {
+  } else if (kind === "vector") {
     $("svgInput").click();
-  } else if (t === "barcode") {
+  } else if (kind === "barcode") {
     const o = { type: "barcode", x: 0, y: 0, format: "CODE128", data: BARCODE_FORMATS.CODE128.sample, module: 2, barHeight: 60, showText: true, fontSize: 18 };
     const bb = boundsOf(o);
     o.x = labelCenterX(bb.w);
@@ -656,7 +675,7 @@ async function addSvgFile(file) {
   const text = await file.text();
   const src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(text)));
   const img = imageFor(src);
-  try { await img.decode(); } catch { return toast("Не удалось прочитать SVG", true); }
+  try { await img.decode(); } catch { return toast(t("Не удалось прочитать SVG"), true); }
   // размеры: из width/height, иначе из viewBox
   let w0 = img.naturalWidth, h0 = img.naturalHeight;
   const vb = text.match(/viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
@@ -670,7 +689,7 @@ async function addSvgFile(file) {
 
 async function addImageFile(file) {
   if (file.type === "image/svg+xml" || /\.svg$/i.test(file.name ?? "")) return addSvgFile(file);
-  if (!file.type.startsWith("image/")) return toast("Это не картинка", true);
+  if (!file.type.startsWith("image/")) return toast(t("Это не картинка"), true);
   const src = await new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(r.result);
@@ -881,65 +900,65 @@ function moveLayer(dir) {
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const num = (prop, label, min, max, step = 1) =>
-  `<label>${label}<input type="number" data-prop="${prop}" min="${min}" max="${max}" step="${step}" /></label>`;
+  `<label>${t(label)}<input type="number" data-prop="${prop}" min="${min}" max="${max}" step="${step}" /></label>`;
 const range = (prop, label, min, max) =>
-  `<label>${label} <output data-out="${prop}"></output><input type="range" data-prop="${prop}" min="${min}" max="${max}" /></label>`;
-const check = (prop, label) => `<label class="check"><input type="checkbox" data-prop="${prop}" /> ${label}</label>`;
+  `<label>${t(label)} <output data-out="${prop}"></output><input type="range" data-prop="${prop}" min="${min}" max="${max}" /></label>`;
+const check = (prop, label) => `<label class="check"><input type="checkbox" data-prop="${prop}" /> ${t(label)}</label>`;
 
 function buildProps() {
   const o = selected();
   const body = $("propsBody");
   if (!o) {
-    body.innerHTML = `<p class="hint">Выберите элемент на холсте или добавьте новый слева.<br/>Стрелки — сдвиг, Shift — ×10, ⌫ — удалить, ⌘D — копия.</p>`;
+    body.innerHTML = `<p class="hint">${t("Выберите элемент на холсте или добавьте новый слева.<br/>Стрелки — сдвиг, Shift — ×10, ⌫ — удалить, ⌘D — копия.")}</p>`;
     return;
   }
   let html = "";
   if (o.type === "text") {
-    html += `<label>Текст<textarea data-prop="text" rows="3"></textarea></label>
-      <label>Шрифт<select data-prop="fontFamily">${FONTS.map(([v, n]) => `<option value="${esc(v)}" style="font-family:${esc(v)}">${n}</option>`).join("")}</select></label>
+    html += `<label>${t("Текст")}<textarea data-prop="text" rows="3"></textarea></label>
+      <label>${t("Шрифт")}<select data-prop="fontFamily">${FONTS.map(([v, n]) => `<option value="${esc(v)}" style="font-family:${esc(v)}">${t(n)}</option>`).join("")}</select></label>
       <div class="grid2">${num("fontSize", "Размер, px", 6, 400)}${num("lineHeight", "Интервал", 0.8, 3, 0.05)}</div>
       <div class="align" data-align>
-        <button data-v="left">⟸ Слева</button><button data-v="center">Центр</button><button data-v="right">Справа ⟹</button>
+        <button data-v="left">${t("⟸ Слева")}</button><button data-v="center">${t("Центр")}</button><button data-v="right">${t("Справа ⟹")}</button>
       </div>
       ${check("bold", "Жирный")}${check("italic", "Курсив")}${check("inverse", "Белым по чёрному")}`;
   } else if (o.type === "qr") {
-    html += `<label>Содержимое<textarea data-prop="data" rows="3"></textarea></label>
+    html += `<label>${t("Содержимое")}<textarea data-prop="data" rows="3"></textarea></label>
       <div class="grid2">${num("size", "Размер, px", 21, 384)}
-      <label>Коррекция<select data-prop="ecc"><option value="L">L · 7%</option><option value="M">M · 15%</option><option value="Q">Q · 25%</option><option value="H">H · 30%</option></select></label></div>`;
+      <label>${t("Коррекция")}<select data-prop="ecc"><option value="L">L · 7%</option><option value="M">M · 15%</option><option value="Q">Q · 25%</option><option value="H">H · 30%</option></select></label></div>`;
   } else if (o.type === "image") {
     html += `<div class="grid2">${num("w", "Ширина, px", 8, 2000)}${num("h", "Высота, px", 8, 4000)}</div>
       ${range("brightness", "Яркость", 20, 250)}${range("contrast", "Контраст", 20, 300)}
-      <div class="propsActions"><button class="btn small" data-act="fitw">По ширине</button><button class="btn small" data-act="fith">По высоте</button></div>`;
+      <div class="propsActions"><button class="btn small" data-act="fitw">${t("По ширине")}</button><button class="btn small" data-act="fith">${t("По высоте")}</button></div>`;
   } else if (o.type === "barcode") {
-    html += `<label>Стандарт<select data-prop="format">${Object.entries(BARCODE_FORMATS).map(([k, f]) => `<option value="${k}">${f.label}</option>`).join("")}</select></label>
-      <label>Данные<input type="text" data-prop="data" spellcheck="false" /></label>
+    html += `<label>${t("Стандарт")}<select data-prop="format">${Object.entries(BARCODE_FORMATS).map(([k, f]) => `<option value="${k}">${t(f.label)}</option>`).join("")}</select></label>
+      <label>${t("Данные")}<input type="text" data-prop="data" spellcheck="false" /></label>
       <p class="hint" id="barcodeInfo"></p>
       <div class="grid2">${num("module", "Модуль, точек", 1, 8)}${num("barHeight", "Высота полос, px", 10, 2000)}</div>
       ${check("showText", "Подпись под кодом")}
       ${num("fontSize", "Размер подписи, px", 8, 60)}
-      <div class="propsActions"><button class="btn small" data-act="sample">Пример данных</button></div>`;
+      <div class="propsActions"><button class="btn small" data-act="sample">${t("Пример данных")}</button></div>`;
   } else if (o.type === "vector") {
     html += `<div class="grid2">${num("w", "Ширина, px", 8, 4000)}${num("h", "Высота, px", 8, 8000)}</div>
       ${check("dither", "Дизеринг (для SVG с градиентами)")}
-      <p class="hint">Без дизеринга SVG печатается резким порогом — как текст. Тени и градиенты лучше с дизерингом.</p>
-      <div class="propsActions"><button class="btn small" data-act="fitw">По ширине</button><button class="btn small" data-act="fith">По высоте</button></div>`;
+      <p class="hint">${t("Без дизеринга SVG печатается резким порогом — как текст. Тени и градиенты лучше с дизерингом.")}</p>
+      <div class="propsActions"><button class="btn small" data-act="fitw">${t("По ширине")}</button><button class="btn small" data-act="fith">${t("По высоте")}</button></div>`;
   } else if (o.type === "rect") {
     html += `<div class="grid2">${num("w", "Ширина, px", 2, 384)}${num("h", "Высота, px", 2, 8000)}</div>
-      <label>Стиль<select data-prop="style">${Object.entries(FRAME_STYLES).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label>
+      <label>${t("Стиль")}<select data-prop="style">${Object.entries(FRAME_STYLES).map(([k, v]) => `<option value="${k}">${t(v)}</option>`).join("")}</select></label>
       <div class="grid2">${num("stroke", "Толщина, px", 1, 50)}${num("radius", "Скругление, px", 0, 200)}</div>
       ${check("fill", "Залить")}
-      <div class="propsActions"><button class="btn small" data-act="fullframe">Во всю этикетку</button></div>`;
+      <div class="propsActions"><button class="btn small" data-act="fullframe">${t("Во всю этикетку")}</button></div>`;
   }
   html += `<div class="grid2">${num("x", "X, px", -2000, 2000)}${num("y", "Y, px", -2000, 8000)}</div>
     <div class="propsActions">
-      <button class="btn small" data-act="centerx">⇔ По центру</button>
-      <button class="btn small" data-act="centery">⇕ По центру</button>
+      <button class="btn small" data-act="centerx">${t("⇔ По центру")}</button>
+      <button class="btn small" data-act="centery">${t("⇕ По центру")}</button>
     </div>
     <div class="propsActions">
-      <button class="btn small" data-act="up">↑ Выше</button>
-      <button class="btn small" data-act="down">↓ Ниже</button>
-      <button class="btn small" data-act="dup">Копия</button>
-      <button class="btn small danger" data-act="del">Удалить</button>
+      <button class="btn small" data-act="up">${t("↑ Выше")}</button>
+      <button class="btn small" data-act="down">${t("↓ Ниже")}</button>
+      <button class="btn small" data-act="dup">${t("Копия")}</button>
+      <button class="btn small danger" data-act="del">${t("Удалить")}</button>
     </div>`;
   body.innerHTML = html;
   syncPropsValues();
@@ -1006,7 +1025,7 @@ function syncPropsValues(except) {
     if (r.error) { bi.textContent = r.error; bi.style.color = "var(--err)"; }
     else {
       const mm = (r.canvas.width / PX_PER_MM).toFixed(1), tooWide = r.canvas.width > labelW();
-      bi.textContent = `${f.hint}. Ширина с полями тишины: ${mm} мм${tooWide ? " — шире этикетки, уменьшите модуль" : ""}.`;
+      bi.textContent = t("{hint}. Ширина с полями тишины: {mm} мм{wide}.", { hint: t(f.hint), mm, wide: tooWide ? t(" — шире этикетки, уменьшите модуль") : "" });
       bi.style.color = tooWide ? "var(--warn)" : "";
     }
   }
@@ -1033,10 +1052,27 @@ function toast(msg, err = false) {
   toastTimer = setTimeout(() => (t.className = "toast"), 2600);
 }
 
+// ---------------- смена языка ----------------
+// Статическую разметку переводит i18n.js; здесь перестраиваем всё, что собирается в JS.
+window.addEventListener("langchange", () => {
+  fillDitherOptions();
+  buildProps();
+  renderLayers();
+  syncSize();
+  syncPrintUi();
+  if (printer.connected) showInfo(printer.info);
+  else {
+    $("devName").textContent = t("Не подключено");
+    $("pillText").textContent = t("Подключить принтер");
+  }
+  setBrandSub();
+  scheduleRender();
+});
+
 // ---------------- старт ----------------
 
 if (!YhkPrinter.serialSupported && !YhkPrinter.bleSupported) {
-  $("devInfo").textContent = "Нужен Chrome или Edge (Web Serial / Web Bluetooth)";
+  $("devInfo").textContent = t("Нужен Chrome или Edge (Web Serial / Web Bluetooth)");
   $("btnConnect").disabled = true;
 } else if (!YhkPrinter.bleSupported && S().transport === "ble") {
   S().transport = "serial";
@@ -1058,7 +1094,7 @@ window.addEventListener("resize", () => {
 });
 render();
 requestAnimationFrame(fitZoomIfNeeded);
-log("Готово. Подключите принтер YHK-0926.");
+log(t("Готово. Подключите принтер YHK-0926."));
 
 // PWA: офлайн-кэш. На localhost не регистрируем (мешает разработке), если только не открыто с ?sw=1.
 if ("serviceWorker" in navigator) {

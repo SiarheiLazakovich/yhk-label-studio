@@ -7,6 +7,12 @@ npm install
 npm start            # → http://localhost:5173  (открыть в Chrome/Edge)
 ```
 
+## Языки
+
+Русский и английский переключаются в шапке. Без сохранённого выбора язык берётся из языка браузера.
+Ключом перевода служит сама русская строка (`t("Печать")`), английский словарь лежит в `js/i18n.js`.
+Если перевода нет, показывается русский оригинал.
+
 ## Публикация (GitHub Pages) и PWA
 
 - `.github/workflows/pages.yml` при пуше в `main` собирает `index.html`, `manifest.webmanifest`, `sw.js`,
@@ -74,6 +80,8 @@ js/printer.js             BLE-драйвер + ESC/POS (WalkPrint)
 js/render.js              рендер макета, дизеринг, обрезка, упаковка
 js/app.js                 редактор: объекты, перетаскивание, свойства, печать
 js/tests.js               тестовые шаблоны: ширина 48/58 мм, разрешение
+js/ui.js                  каркас интерфейса: панели, окна, шторки, вкладки, журнал
+js/i18n.js                русский и английский: t("строка"), словарь EN, переключатель RU/EN
 vendor/qrcode.js          qrcode-generator (MIT)
 vendor/jsbarcode.min.js   JsBarcode 3.12 (MIT): Code128, EAN-13/8, UPC-A/E, Code39, ITF/ITF-14, Codabar, MSI, Pharmacode
 server.mjs                локальный статический сервер

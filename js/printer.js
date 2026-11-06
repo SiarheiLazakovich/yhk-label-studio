@@ -1,3 +1,4 @@
+import { t } from "./i18n.js";
 // YHK-0926 / WalkPrint driver.
 //
 // Протокол взят из декомпилированного WalkPrint (com.yhk.rabbit.print: PrintTask / AppConst / ImageUtil):
@@ -63,7 +64,7 @@ const asciiOf = (bytes) => String.fromCharCode(...bytes.filter((b) => b !== 0)).
 
 /** Упаковка 1-bit буфера (1 байт на пиксель, 1 = чёрный) в строки по 48 байт, MSB слева. */
 export function packRows(bits, width, height) {
-  if (width % 8) throw new Error("Ширина растра должна быть кратна 8");
+  if (width % 8) throw new Error(t("Ширина растра должна быть кратна 8"));
   const bpr = width / 8;
   const out = new Uint8Array(bpr * height);
   for (let y = 0; y < height; y++) {
@@ -110,7 +111,7 @@ class SerialTransport {
   }
 
   async open({ reuse = true } = {}) {
-    if (!SerialTransport.supported) throw new Error("Web Serial недоступен. Нужен Chrome/Edge и https:// или localhost.");
+    if (!SerialTransport.supported) throw new Error(t("Web Serial недоступен. Нужен Chrome/Edge и https:// или localhost."));
     let port = null;
     if (reuse) {
       // ранее разрешённый порт — без окна выбора
@@ -124,14 +125,14 @@ class SerialTransport {
     } catch (e) {
       const native = !!port.getInfo().bluetoothServiceClassId;
       throw new Error(native
-        ? "Не удалось открыть «YHK-0926 – Paired». Нажмите «Подключить» ещё раз и выберите «cu.YHK-0926»."
-        : `Не удалось открыть порт (${e.message}). Принтер включён и не подключён к телефону?`);
+        ? t("Не удалось открыть «YHK-0926 – Paired». Нажмите «Подключить» ещё раз и выберите «cu.YHK-0926».")
+        : t("Не удалось открыть порт ({m}). Принтер включён и не подключён к телефону?", { m: e.message }));
     }
     this.port = port;
     this.writer = port.writable.getWriter();
     this.#readLoop();
     navigator.serial.addEventListener("disconnect", this.#onDisconnect);
-    return port.getInfo().bluetoothServiceClassId ? "YHK (Bluetooth SPP)" : "YHK (порт SPP)";
+    return port.getInfo().bluetoothServiceClassId ? "YHK (Bluetooth SPP)" : t("YHK (порт SPP)");
   }
 
   #onDisconnect = (e) => {
@@ -167,7 +168,7 @@ class SerialTransport {
 
   /** writer.write ждёт, пока данные уйдут в ОС — RFCOMM сам регулирует поток. */
   async write(bytes) {
-    if (!this.writer) throw new Error("Принтер не подключён");
+    if (!this.writer) throw new Error(t("Принтер не подключён"));
     await this.writer.write(bytes);
   }
 
@@ -197,7 +198,7 @@ class BleTransport {
   }
 
   async open({ acceptAll = false, log } = {}) {
-    if (!BleTransport.supported) throw new Error("Web Bluetooth недоступен.");
+    if (!BleTransport.supported) throw new Error(t("Web Bluetooth недоступен."));
     // Принтер двухрежимный; Classic-запись в списке (id = MAC) Web Bluetooth не поддерживает.
     // Фильтр по ISSC-сервису оставляет только BLE-запись.
     this.device = await navigator.bluetooth.requestDevice(acceptAll
@@ -207,10 +208,10 @@ class BleTransport {
     let server, lastErr;
     for (let i = 0; i < 3 && !server; i++) {
       try { server = await this.device.gatt.connect(); }
-      catch (e) { lastErr = e; log?.(`Попытка ${i + 1}: ${e.message}`, "warn"); await sleep(800 * (i + 1)); }
+      catch (e) { lastErr = e; log?.(t("Попытка {n}: {m}", { n: i + 1, m: e.message }), "warn"); await sleep(800 * (i + 1)); }
     }
     if (!server) {
-      if (/unsupported device/i.test(lastErr?.message)) throw new Error("Выбрана Classic-запись принтера — выберите другой YHK-… в списке.");
+      if (/unsupported device/i.test(lastErr?.message)) throw new Error(t("Выбрана Classic-запись принтера — выберите другой YHK-… в списке."));
       throw lastErr;
     }
     const service = await server.getPrimaryService(ISSC_SERVICE);
@@ -228,7 +229,7 @@ class BleTransport {
   }
 
   async writePacket(bytes) {
-    if (!this.tx) throw new Error("Принтер не подключён");
+    if (!this.tx) throw new Error(t("Принтер не подключён"));
     // запись с подтверждением: следующий пакет уходит только после того, как модуль принял предыдущий
     if (this.tx.properties.write) await this.tx.writeValueWithResponse(bytes);
     else await this.tx.writeValueWithoutResponse(bytes);
@@ -267,26 +268,26 @@ export class YhkPrinter extends EventTarget {
   /** @param {{via?: "serial"|"ble", acceptAll?: boolean, reuse?: boolean}} o */
   async connect({ via = "serial", acceptAll = false, reuse = true } = {}) {
     if (this.connected) await this.disconnect();
-    const t = via === "ble" ? new BleTransport() : new SerialTransport();
-    t.onData = (bytes) => this.#onData(bytes);
-    t.onClose = () => {
-      if (this.transport !== t) return;
+    const tr = via === "ble" ? new BleTransport() : new SerialTransport();
+    tr.onData = (bytes) => this.#onData(bytes);
+    tr.onClose = () => {
+      if (this.transport !== tr) return;
       this.transport = null;
-      this.#log("Принтер отключился", "warn");
+      this.#log(t("Принтер отключился"), "warn");
       this.#emit("disconnected");
     };
-    this.#log(via === "ble" ? "Подключение по BLE…" : "Подключение по Bluetooth SPP…");
-    const name = await t.open({ acceptAll, reuse, log: (m, l) => this.#log(m, l) });
-    this.transport = t;
-    this.#log(`Подключено: ${name}`, "ok");
-    this.#emit("connected", { name, kind: t.kind });
+    this.#log(via === "ble" ? t("Подключение по BLE…") : t("Подключение по Bluetooth SPP…"));
+    const name = await tr.open({ acceptAll, reuse, log: (m, l) => this.#log(m, l) });
+    this.transport = tr;
+    this.#log(t("Подключено: {name}", { name }), "ok");
+    this.#emit("connected", { name, kind: tr.kind });
     return name;
   }
 
   async disconnect() {
-    const t = this.transport;
+    const tr = this.transport;
     this.transport = null;
-    await t?.close();
+    await tr?.close();
     this.#emit("disconnected");
   }
 
@@ -303,8 +304,8 @@ export class YhkPrinter extends EventTarget {
   }
 
   async query(cmd, timeoutMs = 2000) {
-    if (this.#busy) throw new Error("Принтер занят печатью");
-    if (!this.connected) throw new Error("Принтер не подключён");
+    if (this.#busy) throw new Error(t("Принтер занят печатью"));
+    if (!this.connected) throw new Error(t("Принтер не подключён"));
     this.#rxBuf = [];
     const answer = new Promise((resolve) => {
       const waiter = (b) => { clearTimeout(timer); resolve(b); };
@@ -358,27 +359,27 @@ export class YhkPrinter extends EventTarget {
 
   /** Печать упакованного растра произвольной ширины (bpr байт в строке; штатно 48). */
   async printRaster(packed, bpr, height, opts = {}) {
-    if (!this.connected) throw new Error("Принтер не подключён");
-    if (this.#busy) throw new Error("Уже идёт печать");
+    if (!this.connected) throw new Error(t("Принтер не подключён"));
+    if (this.#busy) throw new Error(t("Уже идёт печать"));
     const o = { ...DEFAULT_PRINT_OPTIONS, profile: this.info.profile ?? "public", ...opts };
-    const t = this.transport;
-    if (t.kind === "ble") { t.chunkSize = o.chunkSize; t.chunkDelayMs = o.chunkDelayMs; }
+    const tr = this.transport;
+    if (tr.kind === "ble") { tr.chunkSize = o.chunkSize; tr.chunkDelayMs = o.chunkDelayMs; }
     const { pre, raster, post } = buildJob(packed, height, o, bpr);
 
     this.#busy = true;
     this.#emit("busy", true);
     try {
-      this.#log(`Печать: ${bpr * 8}×${height}px, плотность ${densityByte(o)}, ${o.copies} шт., ${t.kind === "ble" ? "BLE" : "SPP"}`);
-      for (const p of pre) { await t.write(p); await sleep(50); }
+      this.#log(t("Печать: {w}×{h}px, плотность {d}, {n} шт., {via}", { w: bpr * 8, h: height, d: densityByte(o), n: o.copies, via: tr.kind === "ble" ? "BLE" : "SPP" }));
+      for (const p of pre) { await tr.write(p); await sleep(50); }
       for (let c = 0; c < o.copies; c++) {
         const progress = (f) => o.onProgress?.((c + f) / o.copies);
-        if (t.kind === "ble") await this.#sendBands(t, raster.subarray(8), height, o, progress, bpr);
-        else await this.#sendWhole(t, raster, post, o, progress);
+        if (tr.kind === "ble") await this.#sendBands(tr, raster.subarray(8), height, o, progress, bpr);
+        else await this.#sendWhole(tr, raster, post, o, progress);
         await sleep(100);
       }
-      if (o.feedAfterMm > 0) await this.#feedRows(t, Math.round(o.feedAfterMm * 8));
-      else await t.write(post);
-      this.#log("Отправлено", "ok");
+      if (o.feedAfterMm > 0) await this.#feedRows(tr, Math.round(o.feedAfterMm * 8));
+      else await tr.write(post);
+      this.#log(t("Отправлено"), "ok");
     } finally {
       this.#busy = false;
       this.#emit("busy", false);
@@ -386,31 +387,31 @@ export class YhkPrinter extends EventTarget {
   }
 
   /** BLE: каждая строка — самостоятельная команда GS v 0 в своём пакете (больше одной строки принтер не печатает). */
-  async #sendBands(t, packed, height, o, progress, bpr = BYTES_PER_ROW) {
+  async #sendBands(tr, packed, height, o, progress, bpr = BYTES_PER_ROW) {
     const rowsPer = 1;
     for (let y = 0; y < height; y += rowsPer) {
-      if (o.signal?.aborted) throw new DOMException("Печать отменена", "AbortError");
+      if (o.signal?.aborted) throw new DOMException(t("Печать отменена"), "AbortError");
       const n = Math.min(rowsPer, height - y);
       const pkt = new Uint8Array(8 + n * bpr);
       pkt.set([0x1d, 0x76, 0x30, 0x00, bpr & 0xff, bpr >> 8, n & 0xff, n >> 8]);
       pkt.set(packed.subarray(y * bpr, (y + n) * bpr), 8);
-      await t.writePacket(pkt);
+      await tr.writePacket(pkt);
       progress((y + n) / height);
     }
   }
 
   /** SPP: один растр кусками по 500 байт — как BluetoothService.write в WalkPrint. */
-  async #sendWhole(t, raster, post, o, progress) {
+  async #sendWhole(tr, raster, post, o, progress) {
     const CH = 500;
     for (let i = 0; i < raster.length; i += CH) {
       if (o.signal?.aborted) {
         // принтер ждёт оставшиеся байты растра — досылаем белым, иначе он съест следующие команды
         const rest = new Uint8Array(raster.length - i);
-        for (let j = 0; j < rest.length; j += CH) await t.write(rest.subarray(j, j + CH));
-        await t.write(post);
-        throw new DOMException("Печать отменена", "AbortError");
+        for (let j = 0; j < rest.length; j += CH) await tr.write(rest.subarray(j, j + CH));
+        await tr.write(post);
+        throw new DOMException(t("Печать отменена"), "AbortError");
       }
-      await t.write(raster.subarray(i, i + CH));
+      await tr.write(raster.subarray(i, i + CH));
       progress(Math.min(1, (i + CH) / raster.length));
     }
   }
@@ -424,26 +425,26 @@ export class YhkPrinter extends EventTarget {
    * Назад принтер бумагу не тянет — в протоколе WalkPrint такой команды нет.
    */
   async feedMm(mm) {
-    if (!this.connected) throw new Error("Принтер не подключён");
-    if (this.#busy) throw new Error("Принтер занят печатью");
+    if (!this.connected) throw new Error(t("Принтер не подключён"));
+    if (this.#busy) throw new Error(t("Принтер занят печатью"));
     this.#busy = true;
     try {
       await this.#feedRows(this.transport, Math.round(mm * 8));
     } finally {
       this.#busy = false;
     }
-    this.#log(`Протяжка ${mm} мм`);
+    this.#log(t("Протяжка {mm} мм", { mm }));
   }
 
   /** Протяжка ровно на rows точечных строк пустым растром (8 строк = 1 мм). */
-  async #feedRows(t, rows) {
+  async #feedRows(tr, rows) {
     rows = Math.max(1, Math.min(4000, rows));
-    if (t.kind === "ble") {
-      await this.#sendBands(t, new Uint8Array(rows * BYTES_PER_ROW), rows, {}, () => {});
+    if (tr.kind === "ble") {
+      await this.#sendBands(tr, new Uint8Array(rows * BYTES_PER_ROW), rows, {}, () => {});
     } else {
       const job = new Uint8Array(8 + rows * BYTES_PER_ROW);
       job.set([0x1d, 0x76, 0x30, 0x00, BYTES_PER_ROW, 0, rows & 0xff, rows >> 8]);
-      for (let i = 0; i < job.length; i += 500) await t.write(job.subarray(i, i + 500));
+      for (let i = 0; i < job.length; i += 500) await tr.write(job.subarray(i, i + 500));
     }
   }
 }

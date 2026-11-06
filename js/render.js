@@ -1,3 +1,4 @@
+import { t } from "./i18n.js";
 // Рендер макета этикетки в 1-bit буфер: текст/QR/фигуры — порог, картинки — дизеринг.
 /* global qrcode, JsBarcode */
 
@@ -213,10 +214,10 @@ const barcodeCache = new Map();
  * Возвращает {canvas} или {error}.
  */
 export function barcodeRender(o) {
-  const key = JSON.stringify([o.format, o.data, o.module, o.barHeight, o.showText, o.fontSize]);
+  const key = JSON.stringify([o.format, o.data, o.module, o.barHeight, o.showText, o.fontSize, t("Ошибка: {m}")]);
   if (barcodeCache.has(key)) return barcodeCache.get(key);
   let res;
-  if (typeof JsBarcode !== "function") res = { error: "Библиотека штрихкодов не загрузилась" };
+  if (typeof JsBarcode !== "function") res = { error: t("Библиотека штрихкодов не загрузилась") };
   else {
     const canvas = document.createElement("canvas");
     let valid = true;
@@ -228,9 +229,9 @@ export function barcodeRender(o) {
         background: "#ffffff", lineColor: "#000000", flat: false,
         valid: (v) => { valid = v; },
       });
-      res = valid ? { canvas } : { error: `Неверные данные для ${BARCODE_FORMATS[o.format]?.label ?? o.format}: ${BARCODE_FORMATS[o.format]?.hint ?? ""}` };
+      res = valid ? { canvas } : { error: t("Неверные данные для {f}: {hint}", { f: t(BARCODE_FORMATS[o.format]?.label ?? o.format), hint: t(BARCODE_FORMATS[o.format]?.hint ?? "") }) };
     } catch (e) {
-      res = { error: `Ошибка: ${e.message ?? e}` };
+      res = { error: t("Ошибка: {m}", { m: e.message ?? e }) };
     }
   }
   if (barcodeCache.size > 50) barcodeCache.clear();
@@ -246,7 +247,7 @@ function drawBarcode(ctx, o) {
     ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
     ctx.strokeRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2);
     ctx.setLineDash([]); ctx.fillStyle = "#000"; ctx.font = "700 14px Inter, Helvetica, Arial, sans-serif"; ctx.textBaseline = "top";
-    ctx.fillText("ШТРИХКОД: ошибка данных", b.x + 8, b.y + 8);
+    ctx.fillText(t("ШТРИХКОД: ошибка данных"), b.x + 8, b.y + 8);
     ctx.restore();
     return;
   }
