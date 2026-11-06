@@ -116,3 +116,14 @@ tools/            debugging over the Chrome DevTools Protocol (Puppeteer), exten
 - `node tools/connect.mjs` picks YHK-… in the BLE chooser and prints the GATT characteristics;
 - `node tools/send.mjs "1e 47 03"` sends raw bytes and shows the reply;
 - `node tools/app-e2e.mjs out.png [print]` runs the whole app end to end.
+
+## License
+
+YHK Label Studio is dual-licensed:
+
+- **[AGPL-3.0](LICENSE)** — free to use, modify and share, commercial use included, as long as the complete source of your changes, and of any product or service built on this code, is published under the AGPL too. That includes offering it over a network, such as a hosted web app.
+- **Commercial license** — for closed-source products or services without the AGPL obligations. Contact the author by the email on the [GitHub profile](https://github.com/SiarheiLazakovich).
+
+Contributions: by submitting a pull request you agree that your contribution may be distributed under both licenses.
+
+Third-party components keep their own licenses: qrcode-generator and JsBarcode (MIT, in `vendor/`), the fonts (SIL OFL 1.1, texts in `fonts/licenses/`).
