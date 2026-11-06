@@ -93,6 +93,41 @@ document.addEventListener("click", (e) => {
 });
 
 backdrop.addEventListener("click", close);
+
+// ---------- swipe down to dismiss a bottom sheet (phones / portrait tablets) ----------
+// Drag by the handle/title: the sheet follows the finger; release past 80 px or with a quick
+// flick closes it, otherwise it springs back. Works with touch and mouse (pointer events).
+for (const el of Object.values(sheets)) {
+  const head = el.querySelector(".sheethead");
+  if (!head) continue;
+  let startY = null, dy = 0, t0 = 0;
+  head.addEventListener("pointerdown", (e) => {
+    if (!mqMobile.matches || !el.classList.contains("open") || e.target.closest("button")) return;
+    startY = e.clientY; dy = 0; t0 = performance.now();
+    head.setPointerCapture(e.pointerId);
+    el.style.transition = "none";
+  });
+  head.addEventListener("pointermove", (e) => {
+    if (startY === null) return;
+    dy = Math.max(0, e.clientY - startY);
+    el.style.transform = `translateY(${dy}px)`;
+  });
+  const end = () => {
+    if (startY === null) return;
+    const speed = dy / Math.max(1, performance.now() - t0); // px per ms
+    startY = null;
+    el.style.transition = "";
+    if (dy > 80 || (dy > 20 && speed > 0.5)) {
+      el.style.transform = "translateY(105%)"; // animate on from where the finger left it
+      close();
+      setTimeout(() => (el.style.transform = ""), 300);
+    } else {
+      el.style.transform = ""; // spring back
+    }
+  };
+  head.addEventListener("pointerup", end);
+  head.addEventListener("pointercancel", end);
+}
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 
 // close overlays when the layout changes so they don't get stuck
