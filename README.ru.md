@@ -65,7 +65,7 @@ Classic SPP (`cu.YHK-0926` через Web Serial) оставлен запасн�
 - `.github/workflows/pages.yml` при каждом пуше в `main` собирает `index.html`, `manifest.webmanifest`, `sw.js`, `css/`, `js/`, `vendor/`, `icons/`, `fonts/` и публикует их (Settings → Pages → Source: **GitHub Actions**).
 - Пути относительные, поэтому приложение работает и по адресу `https://<user>.github.io/<repo>/`. Pages работают по HTTPS, а это обязательно для Web Bluetooth.
 - PWA: манифест и иконки в `icons/`, офлайн-кэш в `sw.js` (при деплое версия кэша заменяется на SHA коммита). На localhost service worker не регистрируется, если не открыть страницу с `?sw=1`.
-- Web Bluetooth есть в Chrome и Edge на компьютере и Android, в Safari и на iOS его нет.
+- Web Bluetooth работает в Chrome, Edge, Opera и Samsung Internet на компьютере и Android (на Android дайте браузеру разрешение «Устройства поблизости», на старых версиях ещё нужна включённая геолокация). На iPhone и iPad все браузеры работают на WebKit без Web Bluetooth — используйте браузер [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055).
 
 ## Структура
 

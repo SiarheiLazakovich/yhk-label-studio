@@ -1073,9 +1073,16 @@ window.addEventListener("langchange", () => {
 
 // ---------------- startup ----------------
 
+// iOS: every browser there is WebKit, which has no Web Bluetooth (Chrome/Edge on iPhone included)
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 if (!YhkPrinter.serialSupported && !YhkPrinter.bleSupported) {
-  $("devInfo").textContent = t("Requires Chrome or Edge (Web Serial / Web Bluetooth)");
+  const msg = isIOS
+    ? t("iPhone and iPad browsers have no Web Bluetooth. Open this page in the Bluefy browser (App Store).")
+    : t("This browser has no Web Bluetooth. Use Chrome, Edge or Opera on a computer or Android.");
+  $("devInfo").textContent = msg;
+  $("pillText").textContent = t("Bluetooth unavailable");
   $("btnConnect").disabled = true;
+  log(msg, "warn");
 } else if (!YhkPrinter.bleSupported && S().transport === "ble") {
   S().transport = "serial";
 } else if (!YhkPrinter.serialSupported && S().transport === "serial") {
