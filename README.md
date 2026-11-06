@@ -1,98 +1,93 @@
+**English** | [Русский](README.ru.md)
+
 # YHK Label Studio
 
-Веб-редактор этикеток для карманного термопринтера **YHK-0926** (приложение WalkPrint) через Web Bluetooth.
+A label editor for the **YHK-0926** pocket thermal printer (the one that ships with the WalkPrint app), printing straight from the browser over Web Bluetooth. No build step, works offline as a PWA.
+
+**Live:** https://siarheilazakovich.github.io/yhk-label-studio/ (Chrome or Edge on desktop or Android)
 
 ```bash
 npm install
-npm start            # → http://localhost:5173  (открыть в Chrome/Edge)
+npm start            # → http://localhost:5173  (open in Chrome/Edge)
 ```
 
-## Языки
+## Features
 
-Русский и английский переключаются в шапке. Без сохранённого выбора язык берётся из языка браузера.
-Ключом перевода служит сама русская строка (`t("Печать")`), английский словарь лежит в `js/i18n.js`.
-Если перевода нет, показывается русский оригинал.
+- **Elements:** text with 14 bundled fonts (Cyrillic included), QR codes, 11 barcode standards (Code 128, EAN-13/8, UPC-A/E, Code 39, ITF/ITF-14, Codabar, MSI, Pharmacode), PNG/JPG and SVG images, 8 frame styles.
+- **Editing:** drag and resize on the canvas, snapping to 1/2, 1/3 · 2/3 and 1/4 · 3/4 of the label (each group can be toggled), layers, keyboard nudging.
+- **Monochrome:** 11 dithering methods (Floyd–Steinberg, Atkinson, Stucki, Jarvis, Sierra, Burkes, blue noise, Bayer…), dot gain compensation, sharpening, dot gain preview.
+- **Label size:** 15–58 mm wide at the true 8 dots/mm. Wider than 48 mm, the edges stay blank because the head is 48 mm.
+- **Printing:** density (light / medium / dark), copies, trimming blank space, exact feed after printing in mm, 180° rotation.
+- **Calibration:** paper feed by +1/+5/+10 mm, width, resolution and 58 mm test prints.
+- **Responsive:** three columns on desktop, an icon rail on landscape tablets, bottom sheets on phones and portrait tablets.
+- **Languages:** English and Russian, switchable in the header.
 
-## Публикация (GitHub Pages) и PWA
-
-- `.github/workflows/pages.yml` при пуше в `main` собирает `index.html`, `manifest.webmanifest`, `sw.js`,
-  `css/`, `js/`, `vendor/`, `icons/` и публикует их. В репозитории включите
-  Settings → Pages → Source: **GitHub Actions**.
-- Пути относительные, поэтому всё работает и по адресу `https://<user>.github.io/<repo>/`.
-  GitHub Pages работает по HTTPS, а это обязательное условие для Web Bluetooth.
-- PWA: манифест и иконки лежат в `icons/`, офлайн-кэш обеспечивает `sw.js`. Версия кэша при деплое
-  заменяется на SHA коммита. На localhost service worker не регистрируется, если не открыть страницу с `?sw=1`.
-- Установка: Chrome → значок «Установить» в адресной строке (на Android: «Добавить на главный экран»).
-  Web Bluetooth есть в Chrome и Edge на desktop и Android. В Safari и на iOS его нет.
-
-## Протокол (из декомпилированного WalkPrint 14.7, проверено печатью)
+## Protocol (from the decompiled WalkPrint 14.7, verified on paper)
 
 | | |
 |---|---|
-| Канал | WalkPrint: Classic SPP (RFCOMM `00001101-…`). В браузере: **BLE с полосами**, см. ниже |
-| Задание | `1D 49 F0 nn` (плотность) → `1B 40` → `1D 76 30 00 30 00 hL hH` + 48 байт/строку → `0A 0A 0A 0A` |
-| Растр | MSB = левый пиксель, 1 = чёрный, ширина 384 точки (8 точек/мм), одним блоком; WalkPrint пишет кусками по 500 байт без пауз |
-| Плотность | public id ≥ 200 → 20/25/30; иначе прошивка ≥ 1.19 → 12/15/18, < 1.19 → 5/10/15 + `1D 49 F1 1E` |
-| Запросы | `1E 47 03` → `HV=…,SV=…,VOLT=7980mv,DPI=384`; `1D 67 39` → серийник; `1D 67 69` → public id (ответы заканчиваются `00`) |
+| Channels | WalkPrint: Classic SPP (RFCOMM `00001101-…`). In the browser: **BLE with one row per packet** (see below) |
+| Job | `1D 49 F0 nn` (density) → `1B 40` → `1D 76 30 00 30 00 hL hH` + 48 bytes per row → `0A 0A 0A 0A` |
+| Raster | MSB = leftmost pixel, 1 = black, 384 dots wide (8 dots/mm) |
+| Density | public id ≥ 200 → 20/25/30; otherwise firmware ≥ 1.19 → 12/15/18, < 1.19 → 5/10/15 + `1D 49 F1 1E` |
+| Queries | `1E 47 03` → `HV=…,SV=…,VOLT=7980mv,DPI=384`; `1D 67 39` → serial; `1D 67 69` → public id (replies end with `00`) |
 
-### BLE (основной канал в браузере)
+### BLE (the main channel in the browser)
 
-Принтер принимает по BLE (ISSC UART `49535343-fe7d-…`, запись в `…8841…`) те же команды, но
-**каждый BLE-пакет разбирает как отдельную команду**: всё, что не поместилось в пакет с заголовком
-`GS v 0`, выбрасывается. Поэтому большой растр по BLE даёт «пару белых строк» (так было у
-joshmcarthur/yhk-mini-printer). Рабочая схема:
+The printer accepts the same commands over BLE (ISSC UART `49535343-fe7d-…`, writes to `…8841…`), but it **parses every BLE packet as a separate command**, and of a `GS v 0` in a packet it prints **only the first row**. A large raster therefore comes out as "a couple of white lines" (this is what happens with joshmcarthur/yhk-mini-printer). What works:
 
-- растр уходит **построчно**: `1D 76 30 00 30 00 01 00` + 48 байт = 56 байт = один пакет.
-  Если в пакете больше строк, печатается только первая (замер: 1/2/3 строки в пакете → 10/5/3 мм);
-- запись с подтверждением (`writeValueWithResponse`), то есть следующий пакет уходит после ответа модуля;
-- плотность, init и протяжка — каждая отдельным коротким пакетом.
+- the raster is sent **one row per packet**: `1D 76 30 00 30 00 01 00` + 48 bytes = 56 bytes. With more rows per packet only the first one prints (measured: 1/2/3 rows per packet → 10/5/3 mm);
+- write with response (`writeValueWithResponse`): the next packet goes out only after the module acknowledges the previous one;
+- density, init and feed are each a separate short packet.
 
-Classic SPP (`cu.YHK-0926`, Web Serial) оставлен запасным: на macOS он работает только пока
-принтер подключён в Настройки → Bluetooth, сама система Classic-соединение не поднимает.
-Пакет `51 78 …` других «котиков» к этому принтеру не относится.
+Classic SPP (`cu.YHK-0926` via Web Serial) is kept as a fallback. On macOS it only works while the printer is connected in Settings → Bluetooth; the OS does not bring the Classic link up on its own.
 
-### Обратная протяжка не поддерживается
+The printer is dual-mode and may appear twice in the chooser under the same name. Web Bluetooth can't use the Classic entry (its id is the MAC; connecting fails with "Unsupported device"), so the app filters by the ISSC service, which leaves only the BLE entry.
 
-Проверено на YHK-0926 (SV=V1.01): бумага не двигается назад ни от `ESC K n`, ни от `ESC e n`, ни от `ESC j n`,
-ни от retract `51 78 A0 …` из протокола других «котиков». В WalkPrint такой команды тоже нет.
-Длина в `GS v 0` беззнаковая, поэтому «−1» (`FF FF`) означает 65 535 строк вперёд.
-Этикетку выравнивают только протяжкой вперёд: кнопки +1/+5/+10 мм и опция «Протяжка после печати в мм».
+### No reverse feed
 
-### Серой печати (нагревом по точкам) нет
+Verified on a YHK-0926 (SV=V1.01): `ESC K n`, `ESC e n`, `ESC j n` and the `51 78 A0 …` retract command from other cat printers do not move the paper backwards. WalkPrint has no such command either. The `GS v 0` length is unsigned, so "−1" (`FF FF`) means 65,535 rows forward. Labels are aligned by feeding forward only: +1/+5/+10 mm and the "Feed after printing" option.
 
-В WalkPrint есть скрытый режим `grayPrint`: строки `1D 78 wL wH` + по байту яркости на точку,
-в конце 100 белых строк и `1B 23 23 43 4C 45 4E` (`##CLEN`). На YHK-0926 (SV=V1.01) он не печатает
-ничего: проверены полные строки по 388 байт и короткие по 180 байт, с обеими полярностями. Плотность
-`1D 49 F0 nn` действует на всё задание целиком. Оттенки получаются только дизерингом.
+### No per-dot grayscale
 
-## Размер этикетки
+WalkPrint has a hidden `grayPrint` mode: rows of `1D 78 wL wH` + one brightness byte per dot, then 100 white rows and `1B 23 23 43 4C 45 4E` (`##CLEN`). The YHK-0926 (SV=V1.01) prints nothing in it: tried full 388-byte rows and short 180-byte rows, with both polarities. Density (`1D 49 F0 nn`) applies to the whole job. Shades come from dithering only.
 
-Головка всегда печатает 8 точек/мм (384 px = 48 мм), поэтому масштаб фиксированный:
-`px = мм × 8`. Этикетка уже 48 мм — это область по центру печатной полосы, всё за её
-пределами затеняется в редакторе и не печатается. Ширину и высоту можно выбирать независимо.
+## Label size
 
-## Структура
+The head always prints 8 dots/mm (384 px = 48 mm), so the scale is fixed: `px = mm × 8`. A label narrower than 48 mm is the centered part of the print band; anything outside it is shaded in the editor and not printed. Width and height are chosen independently.
+
+## Languages
+
+English is the source language of the code and markup; `js/i18n.js` holds the Russian dictionary, keyed by the English string (`t("Print")` → "Печать"). Without a saved choice the language follows the browser. A missing translation falls back to English.
+
+## Publishing (GitHub Pages) and PWA
+
+- `.github/workflows/pages.yml` collects `index.html`, `manifest.webmanifest`, `sw.js`, `css/`, `js/`, `vendor/`, `icons/`, `fonts/` on every push to `main` and publishes them (Settings → Pages → Source: **GitHub Actions**).
+- Paths are relative, so the app also works under `https://<user>.github.io/<repo>/`. Pages serve over HTTPS, which Web Bluetooth requires.
+- PWA: manifest and icons in `icons/`, offline cache in `sw.js` (the cache version is replaced with the commit SHA on deploy). On localhost the service worker is not registered unless you open `?sw=1`.
+- Web Bluetooth is available in Chrome and Edge on desktop and Android, not in Safari or on iOS.
+
+## Layout
 
 ```
-index.html, css/app.css   интерфейс
+index.html, css/app.css               UI
 manifest.webmanifest, sw.js, icons/   PWA
-js/printer.js             BLE-драйвер + ESC/POS (WalkPrint)
-js/render.js              рендер макета, дизеринг, обрезка, упаковка
-js/app.js                 редактор: объекты, перетаскивание, свойства, печать
-js/tests.js               тестовые шаблоны: ширина 48/58 мм, разрешение
-js/ui.js                  каркас интерфейса: панели, окна, шторки, вкладки, журнал
-js/i18n.js                русский и английский: t("строка"), словарь EN, переключатель RU/EN
-vendor/qrcode.js          qrcode-generator (MIT)
-vendor/jsbarcode.min.js   JsBarcode 3.12 (MIT): Code128, EAN-13/8, UPC-A/E, Code39, ITF/ITF-14, Codabar, MSI, Pharmacode
-server.mjs                локальный статический сервер
-tools/                    отладка через Chrome DevTools Protocol (Puppeteer)
+js/printer.js     BLE/SPP driver + ESC/POS (WalkPrint)
+js/render.js      layout rendering, dithering, trimming, barcodes, frames
+js/app.js         editor: objects, dragging, properties, printing
+js/ui.js          UI shell: panels, popovers, sheets, tabs, log
+js/i18n.js        t(), Russian dictionary, RU/EN switch
+js/tests.js       test patterns: width 48/58 mm, resolution
+vendor/           qrcode-generator (MIT), JsBarcode 3.12 (MIT)
+fonts/            Fontsource woff2 (SIL OFL 1.1, licenses in fonts/licenses/)
+server.mjs        local static server
+tools/            debugging over the Chrome DevTools Protocol (Puppeteer)
 ```
 
-## Отладка без кликов (tools/)
+## Debugging without clicks (tools/)
 
-`npm run chrome` запускает отдельный Chrome с CDP на :9222 через `open`. Из-под терминала macOS
-убивает Chrome при обращении к Bluetooth (TCC). Затем:
+`npm run chrome` starts a separate Chrome with CDP on :9222. It is launched via `open`, because macOS kills Chrome on Bluetooth access when it is started from a terminal (TCC). Then:
 
-- `node tools/connect.mjs`: сам выбирает YHK-… в окне выбора BLE и выводит список GATT-характеристик;
-- `node tools/send.mjs "1e 47 03"`: отправить сырые байты и показать ответ;
-- `node tools/app-e2e.mjs out.png [print]`: прогон приложения целиком.
+- `node tools/connect.mjs` picks YHK-… in the BLE chooser and prints the GATT characteristics;
+- `node tools/send.mjs "1e 47 03"` sends raw bytes and shows the reply;
+- `node tools/app-e2e.mjs out.png [print]` runs the whole app end to end.
