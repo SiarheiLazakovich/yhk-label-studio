@@ -1,5 +1,5 @@
 import { t } from "./i18n.js";
-// Рендер макета этикетки в 1-bit буфер: текст/QR/фигуры — порог, картинки — дизеринг.
+// Renders the label layout into a 1-bit buffer: text/QR/shapes are thresholded, images are dithered.
 /* global qrcode, JsBarcode */
 
 export const DITHERS = {
@@ -13,10 +13,10 @@ export const DITHERS = {
   bluenoise: "Blue noise",
   bayer4: "Bayer 4×4",
   bayer8: "Bayer 8×8",
-  threshold: "Порог",
+  threshold: "Threshold",
 };
 
-// Ядра диффузии ошибки: [dx, dy, вес]; делитель — сумма весов (у Atkinson намеренно 6/8 — теряет часть ошибки).
+// Error diffusion kernels: [dx, dy, weight]; divisor is the weight sum (Atkinson intentionally spreads 6/8 and drops the rest).
 const KERNELS = {
   floyd: { div: 16, k: [[1, 0, 7], [-1, 1, 3], [0, 1, 5], [1, 1, 1]] },
   atkinson: { div: 8, k: [[1, 0, 1], [2, 0, 1], [-1, 1, 1], [0, 1, 1], [1, 1, 1], [0, 2, 1]] },
@@ -35,7 +35,7 @@ const BAYER8 = [
   15, 47, 7, 39, 13, 45, 5, 37, 63, 31, 55, 23, 61, 29, 53, 21,
 ];
 
-/** Маска blue noise 64×64 методом void-and-cluster (Ulichney), считается один раз. Значения 0..1. */
+/** 64×64 blue-noise mask via void-and-cluster (Ulichney), computed once. Values 0..1. */
 let blueNoise = null;
 function blueNoiseMask() {
   if (blueNoise) return blueNoise;
@@ -47,14 +47,14 @@ function blueNoiseMask() {
     const x = i % N, y = (i / N) | 0;
     for (const [dx, dy, v] of kern) energy[((y + dy + N) % N) * N + ((x + dx + N) % N)] += sign * v;
   };
-  // детерминированный ГПСЧ — маска одинакова при каждом запуске
+  // deterministic PRNG — the mask is identical on every run
   let seed = 12345;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   const initial = Math.floor(NN / 10);
   for (let n = 0; n < initial; n++) { let i; do i = (rnd() * NN) | 0; while (on[i]); on[i] = 1; splat(i, 1); }
   const tightest = () => { let b = -1, bv = -Infinity; for (let i = 0; i < NN; i++) if (on[i] && energy[i] > bv) { bv = energy[i]; b = i; } return b; };
   const largestVoid = () => { let b = -1, bv = Infinity; for (let i = 0; i < NN; i++) if (!on[i] && energy[i] < bv) { bv = energy[i]; b = i; } return b; };
-  // перераспределение стартовых точек
+  // redistribute the initial points
   for (;;) {
     const c = tightest(); on[c] = 0; splat(c, -1);
     const v = largestVoid();
@@ -62,10 +62,10 @@ function blueNoiseMask() {
     on[v] = 1; splat(v, 1);
   }
   const proto = Uint8Array.from(on), protoE = Float32Array.from(energy);
-  // фаза 1: ранги стартовых точек (убираем самые плотные)
+  // phase 1: rank the initial points (remove the tightest clusters)
   let ones = initial;
   for (let r = ones - 1; r >= 0; r--) { const c = tightest(); on[c] = 0; splat(c, -1); rank[c] = r; }
-  // фаза 2–3: добавляем точки в самые большие пустоты
+  // phases 2–3: add points into the largest voids
   on.set(proto); energy.set(protoE);
   for (let r = ones; r < NN; r++) { const v = largestVoid(); on[v] = 1; splat(v, 1); rank[v] = r; }
   blueNoise = { N, m: rank.map((r) => (r + 0.5) / NN) };
@@ -73,8 +73,8 @@ function blueNoiseMask() {
 }
 
 /**
- * gray: Float32Array 0..255 (255 = белый). Возвращает Uint8Array, 1 = чёрный.
- * Диффузионные методы идут «змейкой» (чётные строки слева направо, нечётные — справа налево).
+ * gray: Float32Array 0..255 (255 = white). Returns a Uint8Array, 1 = black.
+ * Diffusion methods use serpentine order (even rows left to right, odd rows right to left).
  */
 export function dither(gray, w, h, method = "floyd", threshold = 128) {
   const out = new Uint8Array(w * h);
@@ -110,10 +110,10 @@ export function dither(gray, w, h, method = "floyd", threshold = 128) {
 }
 
 /**
- * Подготовка картинки перед дизерингом:
- *  sharpen 0..100 — нерезкое маскирование 3×3 (как фильтр резкости в WalkPrint);
- *  dotGain 0..100 — компенсация растекания: термоточка расплывается и тон темнеет, поэтому
- *  средние тона заранее осветляются гамма-кривой (γ от 1 до 2.2). Чистые белый/чёрный не меняются.
+ * Image preparation before dithering:
+ *  sharpen 0..100 — 3×3 unsharp mask (like the sharpen filter in WalkPrint);
+ *  dotGain 0..100 — dot gain compensation: a thermal dot spreads and darkens the tone, so
+ *  midtones are lightened up front with a gamma curve (γ 1 to 2.2). Pure white/black stay unchanged.
  */
 export function prepareGray(gray, w, h, { sharpen = 0, dotGain = 0 } = {}) {
   let g = gray;
@@ -145,7 +145,7 @@ function grayOf(ctx, w, h) {
   const d = ctx.getImageData(0, 0, w, h).data;
   const g = new Float32Array(w * h);
   for (let i = 0, p = 0; i < g.length; i++, p += 4) {
-    // альфа поверх белого
+    // alpha over white
     const a = d[p + 3] / 255;
     const lum = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
     g[i] = lum * a + 255 * (1 - a);
@@ -153,7 +153,7 @@ function grayOf(ctx, w, h) {
   return g;
 }
 
-// ---------- геометрия объектов ----------
+// ---------- object geometry ----------
 
 const measureCtx = document.createElement("canvas").getContext("2d");
 
@@ -191,33 +191,33 @@ function qrGeometry(o) {
   return { n, cell, side: cell * n };
 }
 
-// ---------- штрихкоды (JsBarcode) ----------
+// ---------- barcodes (JsBarcode) ----------
 
 export const BARCODE_FORMATS = {
-  CODE128: { label: "Code 128", sample: "YHK-0926", hint: "любые символы ASCII" },
-  EAN13: { label: "EAN-13", sample: "460123456789", hint: "12 цифр (контрольная добавится) или 13" },
-  EAN8: { label: "EAN-8", sample: "4601234", hint: "7 цифр или 8" },
-  UPC: { label: "UPC-A", sample: "12345678901", hint: "11 цифр или 12" },
-  UPCE: { label: "UPC-E", sample: "123456", hint: "6 или 8 цифр" },
-  CODE39: { label: "Code 39", sample: "YHK0926", hint: "A–Z, 0–9, пробел и - . $ / + %" },
-  ITF14: { label: "ITF-14", sample: "1460123456789", hint: "13 цифр или 14" },
-  ITF: { label: "ITF (2 из 5)", sample: "123456", hint: "чётное число цифр" },
-  codabar: { label: "Codabar", sample: "A12345B", hint: "цифры и - $ : / . +, по краям A–D" },
-  MSI: { label: "MSI", sample: "123456", hint: "цифры" },
-  pharmacode: { label: "Pharmacode", sample: "1234", hint: "число 3–131070" },
+  CODE128: { label: "Code 128", sample: "YHK-0926", hint: "any ASCII characters" },
+  EAN13: { label: "EAN-13", sample: "460123456789", hint: "12 digits (check digit is added) or 13" },
+  EAN8: { label: "EAN-8", sample: "4601234", hint: "7 or 8 digits" },
+  UPC: { label: "UPC-A", sample: "12345678901", hint: "11 or 12 digits" },
+  UPCE: { label: "UPC-E", sample: "123456", hint: "6 or 8 digits" },
+  CODE39: { label: "Code 39", sample: "YHK0926", hint: "A–Z, 0–9, space and - . $ / + %" },
+  ITF14: { label: "ITF-14", sample: "1460123456789", hint: "13 or 14 digits" },
+  ITF: { label: "ITF (2 of 5)", sample: "123456", hint: "an even number of digits" },
+  codabar: { label: "Codabar", sample: "A12345B", hint: "digits and - $ : / . +, with A–D at both ends" },
+  MSI: { label: "MSI", sample: "123456", hint: "digits" },
+  pharmacode: { label: "Pharmacode", sample: "1234", hint: "a number 3–131070" },
 };
 
 const barcodeCache = new Map();
 /**
- * Рисует штрихкод в отдельный canvas: модуль — целое число точек головки (o.module),
- * белые поля тишины по 10 модулей слева и справа (нужны сканеру).
- * Возвращает {canvas} или {error}.
+ * Draws a barcode into its own canvas: the module is a whole number of head dots (o.module),
+ * with white quiet zones of 10 modules on the left and right (scanners need them).
+ * Returns {canvas} or {error}.
  */
 export function barcodeRender(o) {
-  const key = JSON.stringify([o.format, o.data, o.module, o.barHeight, o.showText, o.fontSize, t("Ошибка: {m}")]);
+  const key = JSON.stringify([o.format, o.data, o.module, o.barHeight, o.showText, o.fontSize, t("Error: {m}")]);
   if (barcodeCache.has(key)) return barcodeCache.get(key);
   let res;
-  if (typeof JsBarcode !== "function") res = { error: t("Библиотека штрихкодов не загрузилась") };
+  if (typeof JsBarcode !== "function") res = { error: t("The barcode library didn't load") };
   else {
     const canvas = document.createElement("canvas");
     let valid = true;
@@ -229,9 +229,9 @@ export function barcodeRender(o) {
         background: "#ffffff", lineColor: "#000000", flat: false,
         valid: (v) => { valid = v; },
       });
-      res = valid ? { canvas } : { error: t("Неверные данные для {f}: {hint}", { f: t(BARCODE_FORMATS[o.format]?.label ?? o.format), hint: t(BARCODE_FORMATS[o.format]?.hint ?? "") }) };
+      res = valid ? { canvas } : { error: t("Invalid data for {f}: {hint}", { f: t(BARCODE_FORMATS[o.format]?.label ?? o.format), hint: t(BARCODE_FORMATS[o.format]?.hint ?? "") }) };
     } catch (e) {
-      res = { error: t("Ошибка: {m}", { m: e.message ?? e }) };
+      res = { error: t("Error: {m}", { m: e.message ?? e }) };
     }
   }
   if (barcodeCache.size > 50) barcodeCache.clear();
@@ -247,28 +247,28 @@ function drawBarcode(ctx, o) {
     ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
     ctx.strokeRect(b.x + 1, b.y + 1, b.w - 2, b.h - 2);
     ctx.setLineDash([]); ctx.fillStyle = "#000"; ctx.font = "700 14px Inter, Helvetica, Arial, sans-serif"; ctx.textBaseline = "top";
-    ctx.fillText(t("ШТРИХКОД: ошибка данных"), b.x + 8, b.y + 8);
+    ctx.fillText(t("BARCODE: invalid data"), b.x + 8, b.y + 8);
     ctx.restore();
     return;
   }
   ctx.save();
-  ctx.imageSmoothingEnabled = false; // полосы — ровно по точкам головки
+  ctx.imageSmoothingEnabled = false; // bars land exactly on head dots
   ctx.drawImage(r.canvas, Math.round(o.x), Math.round(o.y));
   ctx.restore();
 }
 
-// ---------- векторные изображения (SVG) ----------
+// ---------- vector images (SVG) ----------
 
 function drawVector(ctx, o) {
   const img = imageFor(o.src);
   if (!img.complete || !img.naturalWidth) return;
   ctx.save();
   if (o.dither) ctx.filter = "grayscale(1)";
-  ctx.drawImage(img, o.x, o.y, o.w, o.h); // SVG растеризуется сразу в нужном размере — без потери резкости
+  ctx.drawImage(img, o.x, o.y, o.w, o.h); // the SVG is rasterized directly at the target size — no loss of sharpness
   ctx.restore();
 }
 
-/** Габариты объекта {x,y,w,h} в пикселях этикетки. */
+/** Object bounds {x,y,w,h} in label pixels. */
 export function boundsOf(o) {
   switch (o.type) {
     case "text": {
@@ -288,7 +288,7 @@ export function boundsOf(o) {
   }
 }
 
-// ---------- отрисовка ----------
+// ---------- drawing ----------
 
 function drawText(ctx, o) {
   const { lines, lh, widths, w } = textLayout(o);
@@ -303,7 +303,7 @@ function drawText(ctx, o) {
     let dx = 0;
     if (o.align === "center") dx = (w - widths[i]) / 2;
     else if (o.align === "right") dx = w - widths[i];
-    // небольшой сдвиг: canvas рисует с верхним отступом
+    // small offset: canvas draws with a top bearing
     ctx.fillText(line, o.x + dx, o.y + i * lh + Math.round((lh - o.fontSize) / 2));
   });
 }
@@ -324,19 +324,19 @@ function drawQr(ctx, o) {
 }
 
 export const FRAME_STYLES = {
-  solid: "Сплошная",
-  double: "Двойная",
-  dashed: "Пунктир",
-  dotted: "Точки",
-  corners: "Только уголки",
-  ticket: "Билет (вырезы в углах)",
-  scallop: "Волна (фестоны)",
-  stamp: "Марка (перфорация)",
+  solid: "Solid",
+  double: "Double",
+  dashed: "Dashed",
+  dotted: "Dotted",
+  corners: "Corners only",
+  ticket: "Ticket (notched corners)",
+  scallop: "Scalloped",
+  stamp: "Stamp (perforated)",
 };
 
 /**
- * Рамка: o.style из FRAME_STYLES, o.stroke — толщина, o.radius — скругление углов, o.fill — заливка.
- * Линия всегда внутри габаритов (x, y, w, h), чтобы толстая рамка не вылезала за этикетку.
+ * Frame: o.style from FRAME_STYLES, o.stroke is the thickness, o.radius the corner radius, o.fill fills it.
+ * The line always stays inside the bounds (x, y, w, h) so a thick frame doesn't spill off the label.
  */
 function drawRect(ctx, o) {
   const t = Math.max(1, o.stroke ?? 3), r = Math.max(0, o.radius ?? 0), style = o.style ?? "solid";
@@ -378,7 +378,7 @@ function drawRect(ctx, o) {
       break;
     }
     case "ticket": {
-      // вогнутые четверть-круги в углах
+      // concave quarter circles in the corners
       const n = Math.max(6, r || Math.min(w, h) * 0.12), i = t / 2;
       const x0 = x + i, y0 = y + i, x1 = x + w - i, y1 = y + h - i;
       ctx.beginPath();
@@ -392,7 +392,7 @@ function drawRect(ctx, o) {
       break;
     }
     case "scallop": {
-      // полукруги наружу по всем сторонам
+      // outward semicircles along every side
       const s0 = Math.max(4, r || t * 3), i = s0 + t / 2;
       const x0 = x + i, y0 = y + i, x1 = x + w - i, y1 = y + h - i;
       const edge = (ax, ay, bx, by, a0) => {
@@ -404,16 +404,16 @@ function drawRect(ctx, o) {
         }
       };
       ctx.beginPath();
-      edge(x0, y0, x1, y0, Math.PI);           // верх — дуги вверх
-      edge(x1, y0, x1, y1, -Math.PI / 2);      // право — вправо
-      edge(x1, y1, x0, y1, 0);                 // низ — вниз
-      edge(x0, y1, x0, y0, Math.PI / 2);       // лево — влево
+      edge(x0, y0, x1, y0, Math.PI);           // top — arcs point up
+      edge(x1, y0, x1, y1, -Math.PI / 2);      // right — arcs point right
+      edge(x1, y1, x0, y1, 0);                 // bottom — arcs point down
+      edge(x0, y1, x0, y0, Math.PI / 2);       // left — arcs point left
       ctx.closePath();
       if (o.fill) ctx.fill(); else ctx.stroke();
       break;
     }
     case "stamp": {
-      // сплошная рамка + ряд «дырочек» перфорации по внешнему краю
+      // solid frame plus a row of perforation holes along the outer edge
       const hole = Math.max(2, r || t * 1.2), gap = hole * 3.2;
       rr(hole * 2 + t / 2, 0); ctx.stroke();
       const dots = (ax, ay, bx, by) => {
@@ -464,11 +464,11 @@ function drawImage(ctx, o) {
  */
 export function renderLabel(doc, settings) {
   const w = doc.width, h = Math.max(1, Math.round(doc.height));
-  // Векторный слой рисуется на прозрачном фоне: где он непрозрачен — он перекрывает картинки
-  // (в т.ч. белые пиксели inverse-текста), где прозрачен — видна дизеринг-картинка.
+  // The vector layer is drawn on a transparent background: where it is opaque it covers images
+  // (including the white pixels of inverse text); where it is transparent the dithered image shows.
   const vec = new OffscreenCanvas(w, h).getContext("2d", { willReadFrequently: true });
 
-  // в слой дизеринга идут растровые картинки и SVG с включённым дизерингом
+  // the dither layer gets raster images and SVGs with dithering enabled
   const images = doc.objects.filter((o) => o.type === "image" || (o.type === "vector" && o.dither));
   let imgBits = null;
   if (images.length) {
@@ -485,7 +485,7 @@ export function renderLabel(doc, settings) {
     else if (o.type === "qr") drawQr(vec, o);
     else if (o.type === "rect") drawRect(vec, o);
     else if (o.type === "barcode") drawBarcode(vec, o);
-    else if (o.type === "vector" && !o.dither) drawVector(vec, o); // SVG — резкий порог, как текст
+    else if (o.type === "vector" && !o.dither) drawVector(vec, o); // SVG — hard threshold, like text
   }
   const d = vec.getImageData(0, 0, w, h).data;
   const bits = new Uint8Array(w * h);
@@ -499,7 +499,7 @@ export function renderLabel(doc, settings) {
   return { width: w, height: h, bits };
 }
 
-/** Находит первую/последнюю строку с чёрными пикселями. null — если пусто. */
+/** Finds the first/last row with black pixels. null if empty. */
 export function contentRows(bits, w, h) {
   let top = -1, bottom = -1;
   for (let y = 0; y < h && top < 0; y++)
@@ -510,7 +510,7 @@ export function contentRows(bits, w, h) {
   return { top, bottom };
 }
 
-/** Обрезает пустые строки сверху/снизу, оставляя margin px. */
+/** Trims blank rows at the top/bottom, keeping margin px. */
 export function trimRows(bits, w, h, margin = 8) {
   const r = contentRows(bits, w, h);
   if (!r) return { bits, height: h, top: 0, bottom: h - 1 };
@@ -523,10 +523,10 @@ export function rotate180(bits) {
   return Uint8Array.from(bits).reverse();
 }
 
-/** Рисует 1-bit буфер на canvas. */
+/** Paints a 1-bit buffer onto a canvas. */
 /**
- * Превью с имитацией растекания: каждая чёрная точка «подмачивает» соседей (spread 0..1).
- * Так на экране видно, насколько темнее картинка выйдет на термобумаге.
+ * Preview with simulated dot gain: every black dot bleeds into its neighbors (spread 0..1).
+ * It shows on screen how much darker the image will come out on thermal paper.
  */
 export function paintBitsDotGain(canvas, bits, w, h, spread = 0.35) {
   canvas.width = w;
@@ -566,7 +566,7 @@ export function paintBits(canvas, bits, w, h, ink = [17, 17, 17]) {
   ctx.putImageData(img, 0, 0);
 }
 
-/** Цветной (неупрощённый) предпросмотр для режима «Редактор». */
+/** Full-color (not reduced) preview for the Editor view. */
 export function renderEditPreview(canvas, doc) {
   const w = doc.width, h = Math.max(1, Math.round(doc.height));
   canvas.width = w;
@@ -574,7 +574,7 @@ export function renderEditPreview(canvas, doc) {
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, w, h);
-  // тот же порядок слоёв, что и при печати: сначала картинки, поверх — текст/QR/рамки
+  // same layer order as when printing: images first, then text/QR/frames on top
   for (const o of doc.objects) if (o.type === "image" || (o.type === "vector" && o.dither)) (o.type === "image" ? drawImage : drawVector)(ctx, o);
   for (const o of doc.objects) {
     if (o.type === "text") drawText(ctx, o);

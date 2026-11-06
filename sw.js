@@ -1,5 +1,5 @@
-// Service worker: приложение работает офлайн. HTML — сначала сеть (чтобы обновления приходили сразу),
-// остальное — из кэша с фоновым обновлением. При изменении файлов увеличьте VERSION.
+// Service worker: the app works offline. HTML is network-first (so updates arrive right away),
+// everything else is served from cache and refreshed in the background. Bump VERSION when files change.
 const VERSION = "v1";
 const CACHE = `yhk-label-studio-${VERSION}`;
 const SHELL = [

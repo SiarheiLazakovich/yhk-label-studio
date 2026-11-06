@@ -1,4 +1,4 @@
-// Печать теста ширины по BLE с записью С ПОДТВЕРЖДЕНИЕМ (writeValueWithResponse).
+// Prints the width test over BLE using write WITH response (writeValueWithResponse).
 // node tools/ble-ack.mjs [chunk=180]
 import puppeteer from "puppeteer-core";
 const chunk = Number(process.argv[2] ?? 180);

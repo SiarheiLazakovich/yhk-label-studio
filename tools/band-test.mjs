@@ -1,4 +1,4 @@
-// Печать текущего макета полосами GS v 0 с синхронизацией по ответу на 1E 47 03.
+// Prints the current layout in GS v 0 bands, syncing on the 1E 47 03 reply.
 // node tools/band-test.mjs [bandRows=24] [chunkDelay=20]
 import puppeteer from "puppeteer-core";
 const band = Number(process.argv[2] ?? 24), delay = Number(process.argv[3] ?? 20);

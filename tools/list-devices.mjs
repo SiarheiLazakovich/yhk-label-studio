@@ -1,4 +1,4 @@
-// Показывает, что видит окно выбора Chrome при разных фильтрах (потом отменяет выбор).
+// Shows what the Chrome chooser sees with different filters (then cancels it).
 import puppeteer from "puppeteer-core";
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null });
 const page = (await browser.pages()).find((p) => p.url().startsWith("http://localhost"));

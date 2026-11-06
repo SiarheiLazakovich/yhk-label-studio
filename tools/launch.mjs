@@ -1,6 +1,6 @@
-// Запускает отдельный Google Chrome (временный профиль) с CDP на порту 9222.
-// Важно: через `open`, чтобы macOS считала Chrome «ответственным» процессом
-// (иначе TCC убивает его при доступе к Bluetooth из-под терминала).
+// Launches a separate Google Chrome (temporary profile) with CDP on port 9222.
+// Important: via `open`, so macOS treats Chrome as the "responsible" process
+// (otherwise TCC kills it when it touches Bluetooth from under a terminal).
 import { execFileSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 

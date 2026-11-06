@@ -1,4 +1,4 @@
-// Минимальный статический сервер: Web Bluetooth работает только на https:// или localhost.
+// Minimal static server: Web Bluetooth only works over https:// or on localhost.
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";

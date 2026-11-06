@@ -1,4 +1,4 @@
-// node tools/print-test.mjs [--no-start] [--invert] — печатает полосу 384x40: левая половина чёрная.
+// node tools/print-test.mjs [--no-start] [--invert] — prints a 384x40 strip with the left half black.
 import puppeteer from "puppeteer-core";
 const args = new Set(process.argv.slice(2));
 const TX = "49535343-8841-43f4-a8d4-ecbe34729bb3";

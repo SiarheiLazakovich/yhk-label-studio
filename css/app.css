@@ -1,5 +1,5 @@
-/* YHK Label Studio — адаптивная раскладка без сборки.
-   ≥ 1280 три колонки · 1024–1279 рейка слева · < 1024 холст + нижняя панель + шторки */
+/* YHK Label Studio — responsive layout, no build step.
+   ≥ 1280 three columns · 1024–1279 left rail · < 1024 canvas + bottom bar + sheets */
 
 :root {
   --bg: #f3f4f7;
@@ -40,14 +40,14 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .ico.xs { width: 12px; height: 12px; }
 .ico.muted { color: #8a90a0; }
 
-/* ---------- шапка ---------- */
+/* ---------- header ---------- */
 .topbar {
   height: var(--top); flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .brandtext { display: flex; flex-direction: column; min-width: 0; }
-.logo { width: 34px; height: 34px; flex: none; display: block; } /* тот же файл, что и favicon */
+.logo { width: 34px; height: 34px; flex: none; display: block; } /* same file as the favicon */
 .pill {
   height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-radius: 20px;
   border: 1px solid var(--line); background: var(--bg); font-weight: 500; font-size: 13px; max-width: 60vw;
@@ -61,7 +61,7 @@ button:disabled { cursor: not-allowed; opacity: .45; }
 .dot.busy { background: var(--warn); animation: pulse 1s infinite; }
 @keyframes pulse { 50% { opacity: .4; } }
 
-/* ---------- кнопки и поля ---------- */
+/* ---------- buttons and fields ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   border: 1px solid var(--line); background: #fff; color: var(--text);
@@ -105,7 +105,7 @@ output { color: var(--text); font-weight: 600; }
 details { margin: 8px 0; padding: 10px 12px; background: var(--bg); border-radius: 10px; }
 details summary { cursor: pointer; font-size: 13px; font-weight: 500; }
 
-/* переключатель-строка: текст слева, чекбокс справа */
+/* switch row: text on the left, checkbox on the right */
 label.switch { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; color: var(--text); font-size: 14px; cursor: pointer; margin-bottom: 10px; }
 label.switch > span { display: flex; flex-direction: column; }
 label.switch small { font-size: 12px; }
@@ -126,7 +126,7 @@ label.switch small { font-size: 12px; }
 .chipgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin-bottom: 12px; }
 .chipgrid .chip { padding: 0; }
 
-/* ---------- раскладка ---------- */
+/* ---------- layout ---------- */
 .layout { flex: 1; display: grid; grid-template-columns: var(--left-w) minmax(0, 1fr) var(--right-w); min-height: 0; }
 .panel { background: var(--panel); min-height: 0; }
 .panel.left { border-right: 1px solid var(--line); overflow-y: auto; }
@@ -154,7 +154,7 @@ label.switch small { font-size: 12px; }
 .layers li .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .layers .empty { color: var(--muted); cursor: default; }
 
-/* правая панель: вкладки + прокрутка + закреплённая печать */
+/* right panel: tabs + scrolling + pinned print footer */
 .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 8px 12px 0; border-bottom: 1px solid var(--line); flex: none; }
 .tabs button { height: 42px; border: 0; border-bottom: 2px solid transparent; background: none; font-size: 14px; font-weight: 500; color: var(--muted); }
 .tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 600; }
@@ -172,14 +172,14 @@ label.switch small { font-size: 12px; }
 .linkcard strong { font-size: 13px; }
 #btnPng { width: 100%; }
 
-/* свойства объекта (генерируются в app.js) */
+/* object properties (generated in app.js) */
 .align { display: flex; gap: 4px; margin-bottom: 10px; }
 .align button { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 8px; min-height: 34px; font-size: 13px; }
 .align button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); }
 .propsActions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .propsActions .btn { flex: 1; }
 
-/* ---------- рабочая область ---------- */
+/* ---------- workspace ---------- */
 .workspace { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .wsbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .seg { display: inline-flex; background: #f0f1f5; border-radius: 10px; padding: 3px; }
@@ -193,7 +193,7 @@ label.switch small { font-size: 12px; }
   background-image: radial-gradient(#d6d9e2 1px, transparent 1px); background-size: 16px 16px;
 }
 .paper { position: relative; background: #fff; box-shadow: var(--shadow), 0 0 0 1px rgba(0,0,0,.06); border-radius: 4px; flex: none; }
-/* Лист шире 48 мм: непечатаемые края — штриховкой снаружи печатной полосы */
+/* Sheet wider than 48 mm: non-printable edges hatched outside the print band */
 .paper::before, .paper::after {
   content: ""; position: absolute; top: 0; bottom: 0; width: var(--side, 0); pointer-events: none;
   background: repeating-linear-gradient(45deg, #fff 0 6px, #eef0f5 6px 12px); border: 1px solid #d5d9e3; display: none;
@@ -212,7 +212,7 @@ label.switch small { font-size: 12px; }
 }
 .dropzone.on { display: grid; }
 
-/* журнал: строка + раскрываемая панель */
+/* log: strip + expandable panel */
 .logbar {
   height: 36px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 0;
   border-top: 1px solid var(--line); background: var(--panel); text-align: left; font-size: 12px; color: var(--muted);
@@ -235,7 +235,7 @@ label.switch small { font-size: 12px; }
 .log[data-filter="err"] li:not(.err) { display: none; }
 .log[data-filter="rx"] li:not(.rx) { display: none; }
 
-/* ---------- всплывающие окна (десктоп) ---------- */
+/* ---------- popovers (desktop) ---------- */
 .popwrap { position: relative; }
 .pop {
   display: none; position: absolute; z-index: 40; background: var(--panel); border: 1px solid var(--line);
@@ -285,7 +285,7 @@ label.switch small { font-size: 12px; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); }
 .toast.err { background: var(--err); }
 
-/* ---------- 1024–1279: левая колонка — рейка иконок ---------- */
+/* ---------- 1024–1279: the left column becomes an icon rail ---------- */
 @media (max-width: 1279px) and (min-width: 1024px) {
   :root { --left-w: 76px; --right-w: 320px; }
   .panel.left section { padding: 10px 8px; border: 0; }
@@ -293,7 +293,7 @@ label.switch small { font-size: 12px; }
   .addgrid { grid-template-columns: 1fr; gap: 4px; }
   .tool { height: 58px; border-color: transparent; font-size: 10px; }
   .railbtn { display: flex !important; }
-  /* «Слои» в рейке: открывает левую панель поверх холста */
+  /* "Layers" in the rail: opens the left panel over the canvas */
   .panel.left.open {
     position: fixed; z-index: 40; top: var(--top); left: 0; bottom: 0; width: 300px; box-shadow: var(--shadow-pop);
   }
@@ -306,7 +306,7 @@ label.switch small { font-size: 12px; }
 }
 .railbtn { display: none; }
 
-/* ---------- < 1024: телефон и портретный планшет ---------- */
+/* ---------- < 1024: phone and portrait tablet ---------- */
 @media (max-width: 1023px) {
   :root { --top: 56px; }
   .brandtext small { display: none; }
@@ -318,7 +318,7 @@ label.switch small { font-size: 12px; }
   .logbar { display: none; }
   .stage { padding: 20px 12px 28px; }
 
-  /* все панели и окна — нижние шторки */
+  /* every panel and popover becomes a bottom sheet */
   .sheet {
     display: flex !important; flex-direction: column; position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; top: auto;
     width: auto; max-width: 640px; margin: 0 auto; max-height: 86dvh; height: auto;
@@ -327,7 +327,7 @@ label.switch small { font-size: 12px; }
     padding-bottom: env(safe-area-inset-bottom);
   }
   .sheet.open { transform: none; visibility: visible; transition: transform .25s ease; }
-  /* у десктопного окна размера позиция задана через id — сбрасываем её для шторки */
+  /* the desktop size popover is positioned by id — reset that for the sheet */
   #sizePop, #printerPop { top: auto; left: 0; right: 0; width: auto; max-height: 86dvh; }
   .sheet > * { flex: none; }
   .sheethead { display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 8px 16px; position: relative; }
@@ -345,7 +345,7 @@ label.switch small { font-size: 12px; }
   .log { min-height: 0; }
   .backdrop { background: rgba(17, 19, 26, .45); z-index: 45; }
 
-  /* крупнее зоны нажатия */
+  /* larger touch targets */
   .btn, .tbtn { min-height: 44px; }
   .btn.small { min-height: 40px; }
   .chip { min-height: 40px; }

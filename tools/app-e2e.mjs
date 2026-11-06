@@ -1,9 +1,9 @@
-// E2E: подключение через кнопку приложения (сам выбирает YHK-*), добавление QR, печать.
+// E2E: connect through the app's button (auto-picks YHK-*), add a QR code, print.
 import puppeteer from "puppeteer-core";
 const [, , shotPath, doPrint] = process.argv;
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null });
 const pages = await browser.pages();
-// освобождаем соединение, занятое тестовой вкладкой
+// release the connection held by the test tab
 for (const p of pages.filter((p) => p.url().startsWith("https://"))) {
   await p.evaluate(() => window.__p?.device.gatt.disconnect()).catch(() => {});
   await p.close();
@@ -23,7 +23,7 @@ await (await prompt).select(dev);
 await page.waitForFunction(() => window.studio.printer.connected, { timeout: 30000 });
 await new Promise((r) => setTimeout(r, 2500)); // getInfo
 
-// QR + подпись, обрезка пустоты
+// QR + caption, trim blank space
 await page.click('[data-add="qr"]');
 await page.evaluate(() => {
   const s = window.studio.state;

@@ -1,8 +1,8 @@
 {
   "name": "YHK Label Studio",
   "short_name": "YHK Labels",
-  "description": "Редактор и печать этикеток на термопринтере YHK-0926 (WalkPrint) через Bluetooth",
-  "lang": "ru",
+  "description": "Design and print labels on the YHK-0926 (WalkPrint) thermal printer over Bluetooth",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

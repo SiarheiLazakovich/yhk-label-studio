@@ -17,7 +17,7 @@
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <!-- Иконки: один спрайт, используются через <svg><use href="#i-…"/></svg> -->
+  <!-- Icons: one sprite, used via <svg><use href="#i-…"/></svg> -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <defs>
       <symbol id="i-logo" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="8" rx="2"/><rect x="7" y="11" width="10" height="10" rx="1"/><path d="M9 15h6M9 18h4"/></symbol>
@@ -51,284 +51,284 @@
       <img class="logo" src="icons/icon.svg" alt="" width="34" height="34" />
       <div class="brandtext">
         <h1>YHK Label Studio</h1>
-        <small id="brandSub">Принтер не подключён</small>
+        <small id="brandSub">Printer not connected</small>
       </div>
     </div>
     <div class="topright">
-    <div class="seg langseg" role="group" aria-label="Язык">
+    <div class="seg langseg" role="group" aria-label="Language">
       <button data-lang="ru">RU</button><button data-lang="en">EN</button>
     </div>
     <button class="pill" id="printerPill" data-open="printer" aria-haspopup="dialog">
       <span class="dot" id="dot"></span>
-      <span id="pillText">Подключить принтер</span>
+      <span id="pillText">Connect printer</span>
       <svg class="ico sm"><use href="#i-down"/></svg>
     </button>
     </div>
   </header>
 
   <main class="layout">
-    <!-- ЛЕВАЯ ПАНЕЛЬ: добавить + слои. < 1024 — шторка «Добавить» -->
-    <aside class="panel left sheet" id="leftPanel" data-sheet="add" aria-label="Добавить и слои">
-      <div class="sheethead"><h2>Добавить</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+    <!-- LEFT PANEL: add + layers. < 1024 — the "Add" sheet -->
+    <aside class="panel left sheet" id="leftPanel" data-sheet="add" aria-label="Add and layers">
+      <div class="sheethead"><h2>Add</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
       <section>
-        <h2 class="sectitle">Добавить</h2>
+        <h2 class="sectitle">Add</h2>
         <div class="addgrid">
-          <button class="tool" data-add="text" title="Текст"><svg class="ico"><use href="#i-text"/></svg><span>Текст</span></button>
-          <button class="tool" data-add="qr" title="QR-код"><svg class="ico"><use href="#i-qr"/></svg><span>QR-код</span></button>
-          <button class="tool" data-add="barcode" title="Штрихкод"><svg class="ico"><use href="#i-barcode"/></svg><span>Штрихкод</span></button>
-          <button class="tool" data-add="image" title="Картинка"><svg class="ico"><use href="#i-image"/></svg><span>Картинка</span></button>
+          <button class="tool" data-add="text" title="Text"><svg class="ico"><use href="#i-text"/></svg><span>Text</span></button>
+          <button class="tool" data-add="qr" title="QR code"><svg class="ico"><use href="#i-qr"/></svg><span>QR code</span></button>
+          <button class="tool" data-add="barcode" title="Barcode"><svg class="ico"><use href="#i-barcode"/></svg><span>Barcode</span></button>
+          <button class="tool" data-add="image" title="Picture"><svg class="ico"><use href="#i-image"/></svg><span>Picture</span></button>
           <button class="tool" data-add="vector" title="SVG"><svg class="ico"><use href="#i-svg"/></svg><span>SVG</span></button>
-          <button class="tool" data-add="rect" title="Рамка"><svg class="ico"><use href="#i-frame"/></svg><span>Рамка</span></button>
+          <button class="tool" data-add="rect" title="Frame"><svg class="ico"><use href="#i-frame"/></svg><span>Frame</span></button>
         </div>
         <input type="file" id="fileInput" accept="image/*" hidden />
         <input type="file" id="svgInput" accept=".svg,image/svg+xml" hidden />
-        <p class="hint hide-rail">PNG, JPG или SVG можно перетащить на холст или вставить ⌘V.</p>
-        <button class="tool railbtn" data-open="add" data-focus="layersec" title="Слои"><svg class="ico"><use href="#i-layers"/></svg><span>Слои</span></button>
+        <p class="hint hide-rail">Drag a PNG, JPG or SVG onto the canvas, or paste it with ⌘V.</p>
+        <button class="tool railbtn" data-open="add" data-focus="layersec" title="Layers"><svg class="ico"><use href="#i-layers"/></svg><span>Layers</span></button>
       </section>
       <section class="layersec" id="layersec">
-        <h2 class="sectitle">Слои</h2>
+        <h2 class="sectitle">Layers</h2>
         <ul class="layers" id="layers"></ul>
       </section>
     </aside>
 
-    <!-- ХОЛСТ -->
+    <!-- CANVAS -->
     <section class="workspace" id="workspace">
       <div class="wsbar">
         <div class="popwrap">
           <button class="tbtn" id="sizeBtn" data-open="size" aria-haspopup="dialog">
-            <svg class="ico sm"><use href="#i-ruler"/></svg><span id="sizeBtnLabel">48 × 40 мм</span><svg class="ico xs"><use href="#i-down"/></svg>
+            <svg class="ico sm"><use href="#i-ruler"/></svg><span id="sizeBtnLabel">48 × 40 mm</span><svg class="ico xs"><use href="#i-down"/></svg>
           </button>
-          <!-- Окно «Размер и привязка». < 1024 — шторка -->
-          <div class="pop sheet" id="sizePop" data-sheet="size" role="dialog" aria-label="Размер этикетки">
-            <div class="sheethead"><h2>Размер этикетки</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+          <!-- "Size and snapping" popover. < 1024 — a sheet -->
+          <div class="pop sheet" id="sizePop" data-sheet="size" role="dialog" aria-label="Label size">
+            <div class="sheethead"><h2>Label size</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
             <div class="popsec">
-              <span class="minilabel">Ширина, мм</span>
+              <span class="minilabel">Width, mm</span>
               <div class="chipgrid" id="widthChips"></div>
-              <span class="minilabel">Высота, мм</span>
+              <span class="minilabel">Height, mm</span>
               <div class="chipgrid" id="heightChips"></div>
               <div class="sizeline">
-                <input type="number" id="widthMm" min="5" max="80" step="0.5" aria-label="Ширина, мм" />
+                <input type="number" id="widthMm" min="5" max="80" step="0.5" aria-label="Width, mm" />
                 <span>×</span>
-                <input type="number" id="heightMm" min="1" max="1000" step="0.5" aria-label="Высота, мм" />
-                <span>мм =</span>
-                <input type="number" id="widthPx" disabled aria-label="Ширина, px" />
+                <input type="number" id="heightMm" min="1" max="1000" step="0.5" aria-label="Height, mm" />
+                <span>mm =</span>
+                <input type="number" id="widthPx" disabled aria-label="Width, px" />
                 <span>×</span>
-                <input type="number" id="heightPx" min="8" max="8000" step="1" aria-label="Высота, px" />
+                <input type="number" id="heightPx" min="8" max="8000" step="1" aria-label="Height, px" />
                 <span>px</span>
               </div>
               <p class="hint" id="sizeHint"></p>
             </div>
             <div class="popsec" id="snapSec">
-              <strong class="poptitle">Привязка</strong>
+              <strong class="poptitle">Snapping</strong>
               <div class="snapgrid">
-                <span></span><b>Ширина</b><b>Высота</b>
+                <span></span><b>Width</b><b>Height</b>
                 <span class="snaplbl half">1/2</span>
-                <input type="checkbox" id="snapHalfX" aria-label="1/2 ширины" />
-                <input type="checkbox" id="snapHalfY" aria-label="1/2 высоты" />
+                <input type="checkbox" id="snapHalfX" aria-label="1/2 of width" />
+                <input type="checkbox" id="snapHalfY" aria-label="1/2 of height" />
                 <span class="snaplbl third">1/3 · 2/3</span>
-                <input type="checkbox" id="snapThirdX" aria-label="1/3 и 2/3 ширины" />
-                <input type="checkbox" id="snapThirdY" aria-label="1/3 и 2/3 высоты" />
+                <input type="checkbox" id="snapThirdX" aria-label="1/3 and 2/3 of width" />
+                <input type="checkbox" id="snapThirdY" aria-label="1/3 and 2/3 of height" />
                 <span class="snaplbl quarter">1/4 · 3/4</span>
-                <input type="checkbox" id="snapQuarterX" aria-label="1/4 и 3/4 ширины" />
-                <input type="checkbox" id="snapQuarterY" aria-label="1/4 и 3/4 высоты" />
+                <input type="checkbox" id="snapQuarterX" aria-label="1/4 and 3/4 of width" />
+                <input type="checkbox" id="snapQuarterY" aria-label="1/4 and 3/4 of height" />
               </div>
-              <p class="hint">Центр объекта прилипает к линиям. Alt — без привязки.</p>
+              <p class="hint">The object's center snaps to the lines. Hold Alt to move freely.</p>
             </div>
           </div>
         </div>
-        <button class="tbtn hide-sm" data-open="size" data-focus="snapSec" aria-label="Привязка"><svg class="ico sm"><use href="#i-magnet"/></svg><span>Привязка</span></button>
+        <button class="tbtn hide-sm" data-open="size" data-focus="snapSec" aria-label="Snapping"><svg class="ico sm"><use href="#i-magnet"/></svg><span>Snapping</span></button>
         <div class="grow"></div>
         <div class="seg" id="viewSeg">
-          <button data-view="print" class="on">Как напечатается</button>
-          <button data-view="edit">Редактор</button>
+          <button data-view="print" class="on">Print preview</button>
+          <button data-view="edit">Editor</button>
         </div>
         <div class="zoom">
-          <button class="iconbtn" id="zoomOut" aria-label="Уменьшить">−</button>
+          <button class="iconbtn" id="zoomOut" aria-label="Zoom out">−</button>
           <span id="zoomVal">100%</span>
-          <button class="iconbtn" id="zoomIn" aria-label="Увеличить">+</button>
-          <button class="iconbtn" id="zoomFit" aria-label="Вписать"><svg class="ico sm"><use href="#i-fit"/></svg></button>
+          <button class="iconbtn" id="zoomIn" aria-label="Zoom in">+</button>
+          <button class="iconbtn" id="zoomFit" aria-label="Fit"><svg class="ico sm"><use href="#i-fit"/></svg></button>
         </div>
       </div>
       <div class="stage" id="stage">
         <div class="paper" id="paper">
-          <!-- окно ширины этикетки: холст всегда во всю головку (384 px), лишнее обрезается -->
+          <!-- label-width window: the canvas always spans the full head (384 px), the rest is clipped -->
           <div class="clip" id="clip">
             <canvas id="out"></canvas>
             <canvas id="overlay"></canvas>
           </div>
         </div>
       </div>
-      <div class="dropzone" id="dropzone">Отпустите, чтобы добавить картинку</div>
+      <div class="dropzone" id="dropzone">Drop to add the image</div>
 
-      <!-- Журнал: строка внизу холста, раскрывается панелью. < 1024 — шторка -->
+      <!-- Log: a strip below the canvas that expands into a panel. < 1024 — a sheet -->
       <button class="logbar" id="logBar" data-toggle="log" aria-expanded="false" aria-controls="logPanel">
         <svg class="ico xs" id="logChevron"><use href="#i-up"/></svg>
-        <strong>Журнал</strong>
+        <strong>Log</strong>
         <span class="loglast" id="logLast"></span>
         <span class="grow"></span>
         <span class="logmeta" id="printHint"></span>
       </button>
-      <section class="logpanel sheet" id="logPanel" data-sheet="log" aria-label="Журнал">
-        <div class="sheethead"><h2>Журнал</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+      <section class="logpanel sheet" id="logPanel" data-sheet="log" aria-label="Log">
+        <div class="sheethead"><h2>Log</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
         <div class="logtools">
-          <button class="chip on" data-logfilter="all">Все</button>
-          <button class="chip" data-logfilter="err">Ошибки</button>
-          <button class="chip" data-logfilter="rx">Ответы принтера</button>
+          <button class="chip on" data-logfilter="all">All</button>
+          <button class="chip" data-logfilter="err">Errors</button>
+          <button class="chip" data-logfilter="rx">Printer replies</button>
           <span class="grow"></span>
-          <button class="btn small" id="btnLogCopy">Копировать</button>
-          <button class="btn small" id="btnLogClear">Очистить</button>
+          <button class="btn small" id="btnLogCopy">Copy</button>
+          <button class="btn small" id="btnLogClear">Clear</button>
         </div>
         <ol class="log" id="log"></ol>
       </section>
     </section>
 
-    <!-- ПРАВАЯ ПАНЕЛЬ: вкладки + закреплённая печать. < 1024 — шторка -->
-    <aside class="panel right sheet" id="rightPanel" data-sheet="panel" aria-label="Свойства и печать">
-      <div class="sheethead"><h2 id="rightTitle">Элемент</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+    <!-- RIGHT PANEL: tabs + pinned print footer. < 1024 — a sheet -->
+    <aside class="panel right sheet" id="rightPanel" data-sheet="panel" aria-label="Properties and print">
+      <div class="sheethead"><h2 id="rightTitle">Element</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
       <div class="tabs" role="tablist">
-        <button role="tab" data-tab="element" aria-selected="true">Элемент</button>
-        <button role="tab" data-tab="image" aria-selected="false">Изображение</button>
-        <button role="tab" data-tab="print" aria-selected="false">Печать</button>
+        <button role="tab" data-tab="element" aria-selected="true">Element</button>
+        <button role="tab" data-tab="image" aria-selected="false">Image</button>
+        <button role="tab" data-tab="print" aria-selected="false">Print</button>
       </div>
 
       <div class="tabpanes">
         <section class="tabpane" data-pane="element" id="props">
-          <div id="propsBody"><p class="hint">Выберите элемент на холсте.</p></div>
+          <div id="propsBody"><p class="hint">Select an element on the canvas.</p></div>
         </section>
 
         <section class="tabpane" data-pane="image" hidden>
-          <p class="hint top">Как картинки и SVG с градиентами превращаются в точки. Текст, QR и штрихкоды всегда печатаются резко.</p>
-          <label>Дизеринг
+          <p class="hint top">How images and SVGs with gradients turn into dots. Text, QR codes and barcodes always print sharp.</p>
+          <label>Dithering
             <select id="dither"></select>
           </label>
-          <label>Порог <output id="thresholdVal"></output>
+          <label>Threshold <output id="thresholdVal"></output>
             <input type="range" id="threshold" min="20" max="235" />
           </label>
-          <label>Компенсация растекания <output id="dotGainVal"></output>
+          <label>Dot gain compensation <output id="dotGainVal"></output>
             <input type="range" id="dotGain" min="0" max="100" />
           </label>
-          <label>Резкость <output id="sharpenVal"></output>
+          <label>Sharpness <output id="sharpenVal"></output>
             <input type="range" id="sharpen" min="0" max="100" />
           </label>
           <div class="divider"></div>
-          <label class="switch">Превью с растеканием точек <input type="checkbox" id="previewGain" /></label>
-          <label class="switch">Инвертировать всё <input type="checkbox" id="invert" /></label>
+          <label class="switch">Preview dot gain <input type="checkbox" id="previewGain" /></label>
+          <label class="switch">Invert everything <input type="checkbox" id="invert" /></label>
         </section>
 
         <section class="tabpane" data-pane="print" hidden>
-          <span class="minilabel">Плотность (нагрев)</span>
+          <span class="minilabel">Density (heat)</span>
           <div class="segfull" id="densitySeg">
-            <button data-v="0">Светлая</button><button data-v="1">Средняя</button><button data-v="2">Тёмная</button>
+            <button data-v="0">Light</button><button data-v="1">Medium</button><button data-v="2">Dark</button>
           </div>
           <div class="kv">
-            <span>Копий</span>
+            <span>Copies</span>
             <input type="number" id="copies" min="1" max="50" class="narrow" />
           </div>
           <div class="divider"></div>
-          <label class="switch"><span>Обрезать пустоту<small>сверху и снизу</small></span><input type="checkbox" id="trim" /></label>
-          <label class="kv sub">Поля после обрезки, px <input type="number" id="trimMargin" min="0" max="200" class="narrow" /></label>
-          <label class="switch"><span>Протяжка после печати<small>до линии отрыва, мм</small></span><input type="checkbox" id="feedAfterOn" /></label>
-          <label class="kv sub" id="feedAfterBox">Миллиметров <input type="number" id="feedAfterMm" min="0" max="200" step="0.5" class="narrow" /></label>
-          <label class="kv sub">Иначе протяжка, строк <input type="number" id="feedLines" min="0" max="20" class="narrow" /></label>
-          <label class="switch">Повернуть на 180° <input type="checkbox" id="rotate" /></label>
+          <label class="switch"><span>Trim blank space<small>top and bottom</small></span><input type="checkbox" id="trim" /></label>
+          <label class="kv sub">Margin after trim, px <input type="number" id="trimMargin" min="0" max="200" class="narrow" /></label>
+          <label class="switch"><span>Feed after printing<small>to the tear bar, mm</small></span><input type="checkbox" id="feedAfterOn" /></label>
+          <label class="kv sub" id="feedAfterBox">Millimeters <input type="number" id="feedAfterMm" min="0" max="200" step="0.5" class="narrow" /></label>
+          <label class="kv sub">Otherwise feed, lines <input type="number" id="feedLines" min="0" max="20" class="narrow" /></label>
+          <label class="switch">Rotate 180° <input type="checkbox" id="rotate" /></label>
           <div class="divider"></div>
           <button class="linkcard" data-open="printer">
             <svg class="ico"><use href="#i-gear"/></svg>
-            <span><strong>Принтер, бумага, калибровка</strong><small>канал · протяжка · тесты · протокол</small></span>
+            <span><strong>Printer, paper, calibration</strong><small>channel · feed · tests · protocol</small></span>
             <svg class="ico sm muted"><use href="#i-right"/></svg>
           </button>
-          <button class="btn" id="btnPng"><svg class="ico sm"><use href="#i-download"/></svg> Скачать PNG</button>
+          <button class="btn" id="btnPng"><svg class="ico sm"><use href="#i-download"/></svg> Download PNG</button>
         </section>
       </div>
 
       <div class="printfoot">
-        <div class="printsum"><span id="printSummary"></span><button class="linkbtn" data-tab-go="print">Настройки</button></div>
+        <div class="printsum"><span id="printSummary"></span><button class="linkbtn" data-tab-go="print">Settings</button></div>
         <div class="progress" id="progress" hidden><div id="progressBar"></div></div>
         <div class="row">
-          <button class="btn primary big" id="btnPrint" disabled><svg class="ico"><use href="#i-print"/></svg> Печать</button>
-          <button class="btn" id="btnCancel" hidden>Отмена</button>
+          <button class="btn primary big" id="btnPrint" disabled><svg class="ico"><use href="#i-print"/></svg> Print</button>
+          <button class="btn" id="btnCancel" hidden>Cancel</button>
         </div>
       </div>
     </aside>
   </main>
 
-  <!-- Окно принтера (клик по статусу в шапке). < 1024 — шторка -->
-  <section class="pop sheet printerpop" id="printerPop" data-sheet="printer" role="dialog" aria-label="Принтер">
-    <div class="sheethead"><h2>Принтер</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+  <!-- Printer popover (click the status in the header). < 1024 — a sheet -->
+  <section class="pop sheet printerpop" id="printerPop" data-sheet="printer" role="dialog" aria-label="Printer">
+    <div class="sheethead"><h2>Printer</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
     <div class="popsec devhead" id="device">
       <span class="devico"><svg class="ico"><use href="#i-print"/></svg></span>
       <div>
-        <strong id="devName">Не подключено</strong>
-        <small id="devInfo">Нажмите «Подключить» и выберите YHK-…</small>
+        <strong id="devName">Not connected</strong>
+        <small id="devInfo">Press “Connect” and choose YHK-…</small>
       </div>
     </div>
     <div class="popsec stats">
-      <div><small>Заряд</small><strong id="statBattery">—</strong></div>
-      <div><small>Канал</small><strong id="statChannel">—</strong></div>
-      <div><small>Головка</small><strong id="statHead">—</strong></div>
+      <div><small>Battery</small><strong id="statBattery">—</strong></div>
+      <div><small>Channel</small><strong id="statChannel">—</strong></div>
+      <div><small>Print head</small><strong id="statHead">—</strong></div>
     </div>
     <div class="popsec">
-      <strong class="poptitle">Бумага</strong>
+      <strong class="poptitle">Paper</strong>
       <div class="feedgrid">
-        <button class="btn small" data-feed="1" disabled>+1 мм</button>
-        <button class="btn small" data-feed="5" disabled>+5 мм</button>
-        <button class="btn small" data-feed="10" disabled>+10 мм</button>
-        <span class="feedcustom"><input type="number" id="feedMm" min="0.5" max="500" step="0.5" value="20" aria-label="Протянуть, мм" /><button id="btnFeedMm" disabled aria-label="Протянуть">→</button></span>
+        <button class="btn small" data-feed="1" disabled>+1 mm</button>
+        <button class="btn small" data-feed="5" disabled>+5 mm</button>
+        <button class="btn small" data-feed="10" disabled>+10 mm</button>
+        <span class="feedcustom"><input type="number" id="feedMm" min="0.5" max="500" step="0.5" value="20" aria-label="Feed, mm" /><button id="btnFeedMm" disabled aria-label="Feed">→</button></span>
       </div>
-      <p class="hint">Только вперёд — назад принтер бумагу не тянет.</p>
+      <p class="hint">Forward only — the printer can't pull paper back.</p>
     </div>
     <div class="popsec">
-      <strong class="poptitle">Калибровка</strong>
+      <strong class="poptitle">Calibration</strong>
       <div class="feedgrid three">
-        <button class="btn small" id="btnWidthTest" disabled title="Линейка 0–48 мм и крайние точки">Ширина</button>
-        <button class="btn small" id="btnDpiTest" disabled title="Линии 1–3 точки, квадрат 10×10 мм">Разрешение</button>
-        <button class="btn small" id="btnWideTest" disabled title="Растр 464 точки: где головка обрезает печать">58 мм</button>
+        <button class="btn small" id="btnWidthTest" disabled title="Ruler 0–48 mm and edge dots">Width</button>
+        <button class="btn small" id="btnDpiTest" disabled title="1–3 dot lines, 10×10 mm square">Resolution</button>
+        <button class="btn small" id="btnWideTest" disabled title="464-dot raster: where the head cuts off">58 mm</button>
       </div>
     </div>
     <div class="popsec">
-      <strong class="poptitle">Протокол</strong>
+      <strong class="poptitle">Protocol</strong>
       <div class="segfull" id="transportSeg">
         <button data-v="ble">BLE</button><button data-v="serial">Classic SPP</button>
       </div>
       <p class="hint" id="transportHint"></p>
-      <label>Своя плотность, 1–60 (пусто — авто)
-        <input type="number" id="densityCustom" min="1" max="60" placeholder="авто" />
+      <label>Custom density, 1–60 (empty = auto)
+        <input type="number" id="densityCustom" min="1" max="60" placeholder="auto" />
       </label>
       <p class="hint" id="densityHint"></p>
       <div id="bleOpts">
         <div class="grid2">
-          <label>BLE-пакет, байт <input type="number" id="chunkSize" min="20" max="512" /></label>
-          <label>Пауза, мс <input type="number" id="chunkDelay" min="0" max="500" /></label>
+          <label>BLE packet, bytes <input type="number" id="chunkSize" min="20" max="512" /></label>
+          <label>Delay, ms <input type="number" id="chunkDelay" min="0" max="500" /></label>
         </div>
-        <label class="check"><input type="checkbox" id="acceptAll" /> Показать все BLE-устройства</label>
+        <label class="check"><input type="checkbox" id="acceptAll" /> Show all BLE devices</label>
       </div>
     </div>
     <div class="popfoot">
-      <button class="btn primary" id="btnConnect">Подключить</button>
-      <button class="btn danger" id="btnDisconnect" hidden>Отключить</button>
+      <button class="btn primary" id="btnConnect">Connect</button>
+      <button class="btn danger" id="btnDisconnect" hidden>Disconnect</button>
     </div>
   </section>
 
-  <!-- Меню «Ещё» (только < 1024) -->
-  <section class="sheet morepop" id="morePop" data-sheet="more" aria-label="Ещё">
-    <div class="sheethead"><h2>Ещё</h2><button class="iconbtn" data-close aria-label="Закрыть"><svg class="ico"><use href="#i-close"/></svg></button></div>
+  <!-- "More" menu (only < 1024) -->
+  <section class="sheet morepop" id="morePop" data-sheet="more" aria-label="More">
+    <div class="sheethead"><h2>More</h2><button class="iconbtn" data-close aria-label="Close"><svg class="ico"><use href="#i-close"/></svg></button></div>
     <nav class="menulist">
-      <button data-open="add" data-focus="layersec"><svg class="ico"><use href="#i-layers"/></svg><span>Слои</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
-      <button data-open="panel" data-tab-go="image"><svg class="ico"><use href="#i-contrast"/></svg><span>Изображение</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
-      <button data-open="panel" data-tab-go="print"><svg class="ico"><use href="#i-sliders"/></svg><span>Настройки печати</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
-      <button data-open="printer"><svg class="ico"><use href="#i-gear"/></svg><span>Принтер и калибровка</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
-      <button data-open="log"><svg class="ico"><use href="#i-log"/></svg><span>Журнал</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
-      <button data-proxy="btnPng"><svg class="ico"><use href="#i-download"/></svg><span>Скачать PNG</span></button>
+      <button data-open="add" data-focus="layersec"><svg class="ico"><use href="#i-layers"/></svg><span>Layers</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
+      <button data-open="panel" data-tab-go="image"><svg class="ico"><use href="#i-contrast"/></svg><span>Image</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
+      <button data-open="panel" data-tab-go="print"><svg class="ico"><use href="#i-sliders"/></svg><span>Print settings</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
+      <button data-open="printer"><svg class="ico"><use href="#i-gear"/></svg><span>Printer & calibration</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
+      <button data-open="log"><svg class="ico"><use href="#i-log"/></svg><span>Log</span><svg class="ico sm muted"><use href="#i-right"/></svg></button>
+      <button data-proxy="btnPng"><svg class="ico"><use href="#i-download"/></svg><span>Download PNG</span></button>
     </nav>
   </section>
 
-  <!-- Нижняя панель (только < 1024) -->
-  <nav class="mobilenav" aria-label="Инструменты">
-    <button data-open="add"><svg class="ico"><use href="#i-plus"/></svg><span>Добавить</span></button>
-    <button data-open="panel" data-tab-go="element"><svg class="ico"><use href="#i-sliders"/></svg><span>Элемент</span></button>
-    <button data-open="size"><svg class="ico"><use href="#i-ruler"/></svg><span>Размер</span></button>
-    <button data-open="more"><svg class="ico"><use href="#i-more"/></svg><span>Ещё</span></button>
-    <button class="fab" data-proxy="btnPrint" id="fabPrint"><svg class="ico"><use href="#i-print"/></svg><span>Печать</span></button>
+  <!-- Bottom bar (only < 1024) -->
+  <nav class="mobilenav" aria-label="Tools">
+    <button data-open="add"><svg class="ico"><use href="#i-plus"/></svg><span>Add</span></button>
+    <button data-open="panel" data-tab-go="element"><svg class="ico"><use href="#i-sliders"/></svg><span>Element</span></button>
+    <button data-open="size"><svg class="ico"><use href="#i-ruler"/></svg><span>Size</span></button>
+    <button data-open="more"><svg class="ico"><use href="#i-more"/></svg><span>More</span></button>
+    <button class="fab" data-proxy="btnPrint" id="fabPrint"><svg class="ico"><use href="#i-print"/></svg><span>Print</span></button>
   </nav>
 
   <div class="backdrop" id="backdrop" hidden></div>

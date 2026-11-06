@@ -1,9 +1,9 @@
 import { t } from "./i18n.js";
-// Каркас интерфейса: панели, всплывающие окна, шторки, вкладки, журнал.
-// Одна и та же разметка работает на всех ширинах — CSS решает, колонка это, окно или нижняя шторка.
-//   ≥ 1280      — три колонки; «size»/«printer» — всплывающие окна; журнал раскрывается под холстом
-//   1024–1279   — левая колонка — рейка; «add» раскрывает её поверх холста
-//   < 1024      — всё, кроме холста, — нижние шторки с затемнением
+// UI shell: panels, popovers, bottom sheets, tabs, log.
+// The same markup works at every width — CSS decides whether it is a column, a popover or a bottom sheet.
+//   ≥ 1280      — three columns; "size"/"printer" are popovers; the log expands below the canvas
+//   1024–1279   — the left column is a rail; "add" expands it over the canvas
+//   < 1024      — everything except the canvas is a bottom sheet with a backdrop
 
 const $ = (id) => document.getElementById(id);
 const mqMobile = window.matchMedia("(max-width: 1023px)");
@@ -11,16 +11,16 @@ const mqRail = window.matchMedia("(min-width: 1024px) and (max-width: 1279px)");
 
 const sheets = Object.fromEntries([...document.querySelectorAll("[data-sheet]")].map((el) => [el.dataset.sheet, el]));
 const backdrop = $("backdrop");
-const TAB_TITLES = { element: "Элемент", image: "Изображение", print: "Печать" };
+const TAB_TITLES = { element: "Element", image: "Image", print: "Print" };
 
-let current = null; // открытая шторка/окно
+let current = null; // currently open sheet/popover
 
-/** Что для данной ширины считается «оверлеем» (нужен фон и закрытие по клику мимо). */
+/** What counts as an overlay at this width (needs a backdrop and closes on an outside click). */
 function isOverlay(name) {
   if (mqMobile.matches) return true;
   if (name === "size" || name === "printer") return true;
   if (name === "add") return mqRail.matches;
-  return false; // panel и log на десктопе — часть раскладки
+  return false; // panel and log are part of the desktop layout
 }
 
 function setExpanded(name, on) {
@@ -39,7 +39,7 @@ export function open(name, { focus, tab } = {}) {
   const el = sheets[name];
   if (!el) return;
   if (!isOverlay(name)) {
-    // на десктопе панель уже видна; журнал раскрывается на месте
+    // on desktop the panel is already visible; the log expands in place
     if (name === "log") toggleLog(true);
     if (focus) $(focus)?.scrollIntoView({ block: "start", behavior: "smooth" });
     return;
@@ -67,7 +67,7 @@ function toggleLog(force) {
   $("logBar").setAttribute("aria-expanded", String(on));
 }
 
-// ---------- делегирование кликов ----------
+// ---------- click delegation ----------
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-open], [data-close], [data-tab], [data-tab-go], [data-proxy], [data-toggle]");
   if (!el) return;
@@ -84,7 +84,7 @@ document.addEventListener("click", (e) => {
   if (el.dataset.tab) return setTab(el.dataset.tab);
   if (el.dataset.open) {
     const name = el.dataset.open;
-    // повторный клик по кнопке открытого окна — закрыть
+    // a second click on the button of an open popover closes it
     if (current === name && !el.closest(".sheet")) return close();
     open(name, { focus: el.dataset.focus, tab: el.dataset.tabGo });
     return;
@@ -95,17 +95,17 @@ document.addEventListener("click", (e) => {
 backdrop.addEventListener("click", close);
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
 
-// при смене раскладки закрываем оверлеи, чтобы не остались «висеть»
+// close overlays when the layout changes so they don't get stuck
 for (const mq of [mqMobile, mqRail]) mq.addEventListener("change", close);
 
-// на телефоне после добавления элемента или выбора слоя показываем холст
+// on phones, show the canvas after adding an element or picking a layer
 document.addEventListener("click", (e) => {
   if (!mqMobile.matches && !mqRail.matches) return;
   if (e.target.closest("[data-add]:not([data-add=image]):not([data-add=vector]), #layers li[data-id]")) close();
 });
 for (const id of ["fileInput", "svgInput"]) $(id)?.addEventListener("change", close);
 
-// ---------- журнал: последняя строка, фильтры, копирование ----------
+// ---------- log: last line, filters, copy ----------
 const logEl = $("log");
 new MutationObserver(() => {
   const li = logEl.firstElementChild;
@@ -124,17 +124,17 @@ $("btnLogCopy").addEventListener("click", async () => {
 });
 $("btnLogClear").addEventListener("click", () => { logEl.textContent = ""; });
 
-// ---------- кнопка «Печать» в нижней панели повторяет основную ----------
+// ---------- the bottom-bar Print button mirrors the main one ----------
 const btnPrint = $("btnPrint"), fab = $("fabPrint"), fabLabel = fab.querySelector("span");
 const syncFab = () => {
   const busy = !$("progress").hidden;
   fab.disabled = busy;
-  fabLabel.textContent = busy ? `${parseInt($("progressBar").style.width, 10) || 0} %` : t("Печать");
+  fabLabel.textContent = busy ? `${parseInt($("progressBar").style.width, 10) || 0} %` : t("Print");
 };
 new MutationObserver(syncFab).observe(btnPrint, { attributes: true, attributeFilter: ["disabled"] });
 new MutationObserver(syncFab).observe($("progressBar"), { attributes: true, attributeFilter: ["style"] });
 new MutationObserver(syncFab).observe($("progress"), { attributes: true, attributeFilter: ["hidden"] });
-// без подключённого принтера «Печать» в нижней панели открывает окно принтера
+// with no printer connected, the bottom-bar Print button opens the printer popover
 fab.addEventListener("click", (e) => {
   if (!$("btnConnect").hidden) { e.stopPropagation(); open("printer"); }
 }, true);
@@ -146,7 +146,7 @@ window.addEventListener("langchange", () => {
   syncFab();
 });
 
-// стартовая вкладка
+// initial tab
 let startTab = "element";
 try { startTab = localStorage.getItem("yhk-tab") || startTab; } catch { /* ignore */ }
 setTab(TAB_TITLES[startTab] ? startTab : "element");

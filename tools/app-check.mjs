@@ -1,4 +1,4 @@
-// Открывает приложение в CDP-Chrome, собирает ошибки консоли и делает скриншот.
+// Opens the app in the CDP Chrome, collects console errors and takes a screenshot.
 import puppeteer from "puppeteer-core";
 const shot = process.argv[2] ?? "/tmp/app.png";
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null });

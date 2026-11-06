@@ -1,5 +1,5 @@
 import { t } from "./i18n.js";
-// Тестовые шаблоны для калибровки: ширина печати и разрешение. Всё в пикселях головки (8 px/мм).
+// Calibration test patterns: print width and resolution. Everything in head pixels (8 px/mm).
 import { PRINT_WIDTH } from "./printer.js";
 
 const MM = 8;
@@ -23,18 +23,18 @@ function toBits(ctx, h) {
 }
 
 /**
- * Линейка во всю ширину головки: деления каждый 1 мм, длинные — каждые 5 и 10 мм, подписи в мм.
- * Крайние столбцы 0 и 383 залиты полностью — видно, где реально начинается и заканчивается печать.
+ * A ruler across the full head width: ticks every 1 mm, longer ones every 5 and 10 mm, labels in mm.
+ * Edge columns 0 and 383 are solid, so you can see where printing really starts and ends.
  */
 export function widthTest() {
   const h = 22 * MM;
   const ctx = canvas(h);
   ctx.font = "700 18px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("ТЕСТ ШИРИНЫ · 384 px = 48 мм"), 8, 4);
+  ctx.fillText(t("WIDTH TEST · 384 px = 48 mm"), 8, 4);
   ctx.font = "400 13px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("края: столбцы 0 и 383 (стрелки)"), 8, 26);
+  ctx.fillText(t("edges: columns 0 and 383 (arrows)"), 8, 26);
 
-  const base = 12 * MM; // линия линейки
+  const base = 12 * MM; // ruler baseline
   ctx.fillRect(0, base, PRINT_WIDTH, 2);
   for (let mm = 0; mm <= 48; mm++) {
     const x = Math.min(PRINT_WIDTH - 1, mm * MM);
@@ -46,59 +46,59 @@ export function widthTest() {
       ctx.fillText(t, x - ctx.measureText(t).width / 2, base + 6);
     }
   }
-  // крайние столбцы во всю высоту + стрелки внутрь
+  // full-height edge columns + inward arrows
   ctx.fillRect(0, 0, 1, h);
   ctx.fillRect(PRINT_WIDTH - 1, 0, 1, h);
   for (let i = 0; i < 10; i++) {
     ctx.fillRect(1, base + 30 + i, 10 - i, 1);
     ctx.fillRect(PRINT_WIDTH - 11 + i, base + 30 + i, 10 - i, 1);
   }
-  // полоса «шахматкой» по 1 мм — удобно считать миллиметры
+  // 1 mm checker strip — handy for counting millimeters
   for (let mm = 0; mm < 48; mm++) if (mm % 2 === 0) ctx.fillRect(mm * MM, h - 3 * MM, MM, 2 * MM);
   return toBits(ctx, h);
 }
 
 /**
- * Разрешение: линии и шахматки толщиной 1/2/3 точки по обеим осям, квадрат 10×10 мм для проверки
- * масштаба (8 точек/мм = 203 dpi), диагонали и мелкий текст.
+ * Resolution: 1/2/3-dot lines and checkerboards on both axes, a 10×10 mm square to check
+ * the scale (8 dots/mm = 203 dpi), diagonals and small text.
  */
 export function resolutionTest() {
   const h = 60 * MM;
   const ctx = canvas(h);
   ctx.font = "700 16px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("РАЗРЕШЕНИЕ · 8 точек/мм ≈ 203 dpi"), 6, 4);
+  ctx.fillText(t("RESOLUTION · 8 dots/mm ≈ 203 dpi"), 6, 4);
 
   let y = 30;
   const label = (t, yy) => { ctx.font = "400 11px Inter, Helvetica, Arial, sans-serif"; ctx.fillText(t, 4, yy); };
 
-  // вертикальные линии с шагом 2/4/6 точек (линия N точек + промежуток N)
+  // vertical lines with a 2/4/6-dot pitch (an N-dot line + an N-dot gap)
   for (const n of [1, 2, 3]) {
-    label(t("верт. {n}px", { n }), y + 4);
+    label(t("vert. {n}px", { n }), y + 4);
     for (let x = 70; x < PRINT_WIDTH - 4; x += 2 * n) ctx.fillRect(x, y, n, 22);
     y += 28;
   }
-  // горизонтальные линии
+  // horizontal lines
   for (const n of [1, 2, 3]) {
-    label(t("гор. {n}px", { n }), y + 4);
+    label(t("horiz. {n}px", { n }), y + 4);
     for (let yy = y; yy < y + 22; yy += 2 * n) ctx.fillRect(70, yy, PRINT_WIDTH - 74, n);
     y += 28;
   }
-  // шахматки
+  // checkerboards
   for (const n of [1, 2]) {
-    label(t("шахм. {n}px", { n }), y + 4);
+    label(t("checker {n}px", { n }), y + 4);
     for (let yy = 0; yy < 22; yy++)
       for (let x = 70; x < PRINT_WIDTH - 4; x++)
         if (((Math.floor((x - 70) / n) + Math.floor(yy / n)) & 1) === 0) ctx.fillRect(x, y + yy, 1, 1);
     y += 28;
   }
-  // квадрат 10×10 мм + сплошной 5×5 мм
+  // 10×10 mm square + a solid 5×5 mm one
   y += 6;
   ctx.fillRect(8, y, 10 * MM, 1); ctx.fillRect(8, y + 10 * MM - 1, 10 * MM, 1);
   ctx.fillRect(8, y, 1, 10 * MM); ctx.fillRect(8 + 10 * MM - 1, y, 1, 10 * MM);
   ctx.fillRect(8 + 2.5 * MM, y + 2.5 * MM, 5 * MM, 5 * MM);
   ctx.font = "700 12px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("10×10 мм"), 8, y + 10 * MM + 4);
-  // диагонали и окружность (сглаживание выключено — чистые точки)
+  ctx.fillText(t("10×10 mm"), 8, y + 10 * MM + 4);
+  // diagonals and a circle (antialiasing off — clean dots)
   ctx.lineWidth = 1;
   ctx.beginPath();
   for (let i = 0; i < 6; i++) { ctx.moveTo(110 + i * 10, y); ctx.lineTo(170 + i * 10, y + 80); }
@@ -106,18 +106,18 @@ export function resolutionTest() {
   ctx.beginPath(); ctx.arc(290, y + 40, 38, 0, Math.PI * 2); ctx.stroke();
   ctx.beginPath(); ctx.arc(290, y + 40, 20, 0, Math.PI * 2); ctx.fill();
   y += 10 * MM + 24;
-  // мелкий текст
+  // small text
   for (const size of [7, 8, 9, 10, 12, 14]) {
     ctx.font = `400 ${size}px Inter, Helvetica, Arial, sans-serif`;
-    ctx.fillText(t("{n}px Съешь ещё булок 0123456789", { n: size }), 4, y);
+    ctx.fillText(t("{n}px The quick brown fox 0123456789", { n: size }), 4, y);
     y += size + 4;
   }
   return toBits(ctx, Math.min(h, y + 8));
 }
 
 /**
- * Широкая линейка: wideMm мм = wideMm × 8 точек (58 мм = 464 точки = 58 байт в строке).
- * Если головка уже — правый край обрежется (или строки съедут). Сплошные вертикали на 0, 48 и краю.
+ * Wide ruler: wideMm mm = wideMm × 8 dots (58 mm = 464 dots = 58 bytes per row).
+ * If the head is narrower, the right side gets cut off (or rows shift). Solid verticals at 0, 48 and the edge.
  */
 export function wideWidthTest(wideMm = 58) {
   const W = wideMm * MM, h = 24 * MM;
@@ -126,9 +126,9 @@ export function wideWidthTest(wideMm = 58) {
   ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, h);
   ctx.fillStyle = "#000"; ctx.textBaseline = "top";
   ctx.font = "700 16px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("ТЕСТ {mm} мм · {w} точек", { mm: wideMm, w: W }), 8, 4);
+  ctx.fillText(t("TEST {mm} mm · {w} dots", { mm: wideMm, w: W }), 8, 4);
   ctx.font = "400 12px Inter, Helvetica, Arial, sans-serif";
-  ctx.fillText(t("до какой отметки напечатано?"), 8, 24);
+  ctx.fillText(t("which mark did it print up to?"), 8, 24);
 
   const base = 12 * MM;
   ctx.fillRect(0, base, W, 2);
@@ -142,12 +142,12 @@ export function wideWidthTest(wideMm = 58) {
       ctx.fillText(t, x - ctx.measureText(t).width / 2, base + 6);
     }
   }
-  // сплошные вертикали: начало, граница 48 мм, правый край
+  // solid verticals: start, the 48 mm boundary, the right edge
   for (const x of [0, 48 * MM - 1, W - 1]) ctx.fillRect(x, 0, 2, h);
   ctx.font = "700 12px Inter, Helvetica, Arial, sans-serif";
   ctx.fillText("48", 48 * MM - 18, h - 5 * MM);
   ctx.fillText(String(wideMm), W - 20, h - 5 * MM);
-  // полоса по 1 мм
+  // 1 mm strip
   for (let mm = 0; mm < wideMm; mm++) if (mm % 2 === 0) ctx.fillRect(mm * MM, h - 3 * MM, MM, 2 * MM);
 
   const d = ctx.getImageData(0, 0, W, h).data;

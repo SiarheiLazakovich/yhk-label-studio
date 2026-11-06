@@ -1,5 +1,5 @@
-// Подключается к запущенному Chrome, вызывает requestDevice и сам выбирает YHK-* в диалоге.
-// Результат: window.__p = { device, chars: {uuid: characteristic}, rx: [] } на странице.
+// Connects to the running Chrome, calls requestDevice and picks YHK-* in the chooser itself.
+// Result: window.__p = { device, chars: {uuid: characteristic}, rx: [] } on the page.
 import puppeteer from "puppeteer-core";
 
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222" });

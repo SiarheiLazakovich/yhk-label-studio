@@ -1,4 +1,4 @@
-// node tools/send.mjs "1e 47 03" ["1d 67 39" ...] — пишет hex-пакеты в TX и печатает ответы RX.
+// node tools/send.mjs "1e 47 03" ["1d 67 39" ...] — writes hex packets to TX and prints the RX replies.
 import puppeteer from "puppeteer-core";
 const TX = "49535343-8841-43f4-a8d4-ecbe34729bb3";
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222" });

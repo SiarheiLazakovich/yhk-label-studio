@@ -1,4 +1,4 @@
-// Печать теста ширины по BLE с медленной отправкой: node tools/ble-slow.mjs [chunk=20] [delayMs=20]
+// Prints the width test over BLE with slow sending: node tools/ble-slow.mjs [chunk=20] [delayMs=20]
 import puppeteer from "puppeteer-core";
 const chunk = Number(process.argv[2] ?? 20), delay = Number(process.argv[3] ?? 20);
 const browser = await puppeteer.connect({ browserURL: "http://127.0.0.1:9222", defaultViewport: null, protocolTimeout: 300000 });
