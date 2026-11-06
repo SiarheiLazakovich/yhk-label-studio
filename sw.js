@@ -42,7 +42,11 @@ self.addEventListener("fetch", (e) => {
   if (req.mode === "navigate") {
     e.respondWith(
       fetch(req)
-        .then((res) => { caches.open(CACHE).then((c) => c.put("index.html", res.clone())); return res; })
+        .then((res) => {
+          // clone before handing the response to the page — after that its body may already be read
+          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put("index.html", copy)); }
+          return res;
+        })
         .catch(() => caches.match("index.html")),
     );
     return;
@@ -51,7 +55,10 @@ self.addEventListener("fetch", (e) => {
   e.respondWith(
     caches.match(req).then((cached) => {
       const fresh = fetch(req)
-        .then((res) => { if (res.ok) caches.open(CACHE).then((c) => c.put(req, res.clone())); return res; })
+        .then((res) => {
+          if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
+          return res;
+        })
         .catch(() => cached);
       return cached || fresh;
     }),
