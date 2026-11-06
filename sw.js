@@ -10,6 +10,7 @@ const SHELL = [
   "css/fonts.css",
   "js/app.js",
   "js/ui.js",
+  "js/i18n.js",
   "js/printer.js",
   "js/render.js",
   "js/tests.js",
