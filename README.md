@@ -65,7 +65,7 @@ English is the source language of the code and markup; `js/i18n.js` holds the Ru
 - `.github/workflows/pages.yml` collects `index.html`, `manifest.webmanifest`, `sw.js`, `css/`, `js/`, `vendor/`, `icons/`, `fonts/` on every push to `main` and publishes them (Settings → Pages → Source: **GitHub Actions**).
 - Paths are relative, so the app also works under `https://<user>.github.io/<repo>/`. Pages serve over HTTPS, which Web Bluetooth requires.
 - PWA: manifest and icons in `icons/`, offline cache in `sw.js` (the cache version is replaced with the commit SHA on deploy). On localhost the service worker is not registered unless you open `?sw=1`.
-- Web Bluetooth works in Chrome, Edge, Opera and Samsung Internet on desktop and Android (on Android allow the browser "Nearby devices"; older versions also need Location on). On iPhone and iPad every browser is WebKit without Web Bluetooth — use the [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) browser.
+- Web Bluetooth works in Chrome, Edge, Opera and Samsung Internet on desktop and Android (on Android allow the browser "Nearby devices"; older versions also need Location on). On iPhone and iPad every browser is WebKit without Web Bluetooth — use the [Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055) browser: open the site in it and print as usual. The app falls back to the older `writeValue` call and does image brightness/contrast without `ctx.filter`, which WebKit lacks.
 
 ## Browser extension
 

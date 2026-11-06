@@ -230,9 +230,13 @@ class BleTransport {
 
   async writePacket(bytes) {
     if (!this.tx) throw new Error(t("Printer not connected"));
-    // write with response: the next packet goes out only after the module has taken the previous one
-    if (this.tx.properties.write) await this.tx.writeValueWithResponse(bytes);
-    else await this.tx.writeValueWithoutResponse(bytes);
+    // write with response: the next packet goes out only after the module has taken the previous one.
+    // Fallbacks for browsers with an older Web Bluetooth API (e.g. Bluefy on iOS):
+    // writeValue is the legacy write, which uses "with response" when the characteristic supports it.
+    const c = this.tx;
+    if (c.properties.write && c.writeValueWithResponse) await c.writeValueWithResponse(bytes);
+    else if (c.writeValue) await c.writeValue(bytes);
+    else await c.writeValueWithoutResponse(bytes);
     if (this.chunkDelayMs) await sleep(this.chunkDelayMs);
   }
 

@@ -447,13 +447,36 @@ export function imageFor(src) {
   return img;
 }
 
+// WebKit (Safari, every iOS browser including Bluefy) has no CanvasRenderingContext2D.filter
+const canvasFilter = (() => {
+  const c = document.createElement("canvas").getContext("2d");
+  c.filter = "brightness(50%)";
+  return c.filter === "brightness(50%)";
+})();
+
 function drawImage(ctx, o) {
   const img = imageFor(o.src);
   if (!img.complete || !img.naturalWidth) return;
+  const b = (o.brightness ?? 100) / 100, k = (o.contrast ?? 100) / 100;
   ctx.save();
-  ctx.filter = `brightness(${o.brightness ?? 100}%) contrast(${o.contrast ?? 100}%) grayscale(1)`;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(img, o.x, o.y, o.w, o.h);
+  if (canvasFilter || (b === 1 && k === 1)) {
+    if (canvasFilter) ctx.filter = `brightness(${b * 100}%) contrast(${k * 100}%) grayscale(1)`;
+    ctx.drawImage(img, o.x, o.y, o.w, o.h);
+  } else {
+    // manual brightness/contrast — same math as the CSS filters (gray comes from grayOf later)
+    const w = Math.max(1, Math.round(o.w)), h = Math.max(1, Math.round(o.h));
+    const tmp = document.createElement("canvas");
+    tmp.width = w; tmp.height = h;
+    const tc = tmp.getContext("2d", { willReadFrequently: true });
+    tc.drawImage(img, 0, 0, w, h);
+    const id = tc.getImageData(0, 0, w, h), d = id.data;
+    for (let i = 0; i < d.length; i += 4) {
+      for (let j = 0; j < 3; j++) d[i + j] = Math.max(0, Math.min(255, ((d[i + j] * b) / 255 - 0.5) * k * 255 + 127.5));
+    }
+    tc.putImageData(id, 0, 0);
+    ctx.drawImage(tmp, o.x, o.y, o.w, o.h);
+  }
   ctx.restore();
 }
 
